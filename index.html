@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolveSteps - Math and Physics Solver</title>
+<meta name="theme-color" content="#0f1220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SolveSteps">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f1220'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='%235eead4' font-family='Georgia'%3E%E2%88%9A%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"SolveSteps","short_name":"SolveSteps","start_url":".","display":"standalone","background_color":"%230f1220","theme_color":"%235eead4","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%230f1220%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2755%27 text-anchor=%27middle%27 fill=%27%235eead4%27 font-family=%27Georgia%27%3E%E2%88%9A%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#0f1220;color:#e8eaf2;min-height:100vh;padding:16px}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:1.5rem;margin-bottom:2px}
+h1 span{color:#5eead4}
+.sub{color:#8b93b0;font-size:.85rem;margin-bottom:16px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;padding:10px;border:1px solid #2a3050;background:#171b30;color:#e8eaf2;border-radius:10px;font-size:.9rem;cursor:pointer}
+.tabs button.on{background:#5eead4;color:#0f1220;font-weight:700;border-color:#5eead4}
+input[type=text],input[type=number],select{width:100%;padding:14px;border-radius:10px;border:1px solid #2a3050;background:#171b30;color:#fff;font-size:1rem;margin-bottom:10px}
+.go{width:100%;padding:14px;border:none;border-radius:10px;background:#5eead4;color:#0f1220;font-weight:700;font-size:1rem;cursor:pointer}
+.eg{width:100%;padding:10px;border:none;border-radius:10px;background:#1f2540;color:#8be9fd;font-size:.85rem;cursor:pointer;margin-top:8px}
+.card{background:#171b30;border:1px solid #2a3050;border-radius:12px;padding:14px;margin-top:14px}
+.step{display:flex;gap:10px;margin-bottom:12px}
+.n{min-width:24px;height:24px;border-radius:50%;background:#5eead4;color:#0f1220;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.expr{font-family:Georgia,serif;font-size:1.15rem;line-height:1.5}
+.rule{color:#8b93b0;font-size:.8rem;margin-top:2px}
+.ans{background:#14322c;border:1px solid #5eead4;border-radius:12px;padding:14px;margin-top:14px}
+.ans .expr{font-size:1.3rem}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pgrid button{padding:12px;border:1px solid #2a3050;background:#171b30;color:#e8eaf2;border-radius:10px;cursor:pointer;font-size:.85rem}
+.pgrid button.on{background:#5eead4;color:#0f1220;font-weight:700}
+label{font-size:.8rem;color:#8b93b0;display:block;margin:8px 0 4px}
+.hint{color:#8b93b0;font-size:.8rem;margin-top:6px}
+sup{font-size:.75em}
+.fb{position:fixed;bottom:16px;right:16px;padding:12px 18px;border:none;border-radius:24px;background:#5eead4;color:#0f1220;font-weight:700;font-size:.85rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Solve<span>Steps</span></h1>
+<div class="sub">type a problem, see every step - not just the answer</div>
+<div class="tabs">
+<button id="tabMath" class="on" onclick="tab('math')">Maths</button>
+<button id="tabPhy" onclick="tab('phy')">Physics</button>
+<button id="tabQuiz" onclick="tab('quiz')">Quiz</button>
+</div>
+<div id="mathPane">
+<input type="text" id="mIn" placeholder="e.g. (6y + x)(6y - x)  or  2x + 5 = 15  or  x^2 - 5x + 6 = 0">
+<button class="go" onclick="solveMath()">Show steps</button>
+<button class="eg" onclick="eg()">Try example: (6y + x)(6y - x)</button>
+<div class="hint">works with: percentages (20% of 840), arithmetic (12*8+5), expansion, difference of two squares, linear and quadratic equations</div>
+</div>
+<div id="phyPane" style="display:none">
+<div class="pgrid" id="pGrid"></div>
+<div id="pInputs"></div>
+<button class="go" onclick="solvePhy()">Show steps</button>
+</div>
+<div id="quizPane" style="display:none">
+<div class="card" id="streakCard"></div>
+<button class="go" onclick="newQuiz()" style="margin-top:12px">Daily challenge + practice</button>
+<div id="quizArea"></div>
+</div>
+<div id="out"></div>
+</div>
+<button class="fb" onclick="feedback()">💬 Feedback</button>
+<script>
+function tab(t){
+ document.getElementById('tabMath').classList.toggle('on',t=='math');
+ document.getElementById('tabPhy').classList.toggle('on',t=='phy');
+ document.getElementById('tabQuiz').classList.toggle('on',t=='quiz');
+ document.getElementById('mathPane').style.display=t=='math'?'block':'none';
+ document.getElementById('phyPane').style.display=t=='phy'?'block':'none';
+ document.getElementById('quizPane').style.display=t=='quiz'?'block':'none';
+ if(t=='quiz')showStreak();
+}
+function eg(){document.getElementById('mIn').value='(6y + x)(6y - x)';solveMath();}
+function sq(s){return s.replace(/\^2/g,'<sup>2</sup>');}
+function steps(arr,ans){
+ var h='';
+ arr.forEach(function(s,i){h+='<div class="step"><div class="n">'+(i+1)+'</div><div><div class="expr">'+sq(s[0])+'</div><div class="rule">'+s[1]+'</div></div></div>';});
+ if(ans)h+='<div class="ans"><div class="expr">'+sq(ans[0])+'</div><div class="rule">'+ans[1]+'</div></div>';
+ document.getElementById('out').innerHTML='<div class="card">'+h+'</div>';
+}
+function strip(s){return s.replace(/\s+/g,'').replace(/\u2212/g,'-');}
+function solveMath(){
+ var raw=strip(document.getElementById('mIn').value);
+ if(!raw)return;
+ try{
+  if(/%/.test(raw))return solvePercent(raw);
+  if(/^[\d+\-*\/\.() ]+$/.test(raw))return solveArith(raw);
+  if(raw.indexOf('=')>-1)return solveEq(raw);
+  if(raw.indexOf(')(')>-1)return expand(raw);
+  return simplify(raw);
+ }catch(e){document.getElementById('out').innerHTML='<div class="card">could not parse that one yet - try the example format</div>';}
+}
+// 20% of 840, or 20%840, or plain arithmetic like 12*8+5
+function solvePercent(raw){
+ var m=raw.match(/^([\d.]+)%\s*of\s*([\d.]+)$/)||raw.match(/^([\d.]+)%([\d.]+)$/);
+ if(!m)throw 0;
+ var p=parseFloat(m[1]),n=parseFloat(m[2]);
+ var frac=p/100,ans=frac*n;
+ steps([
+  [raw+'','start: '+p+'% of '+n],
+  [p+'% = '+p+' \u00f7 100 = '+frac,'a percent is just a fraction out of 100'],
+  [p+'% \u00d7 '+n+' = '+frac+' \u00d7 '+n,'\u201cof\u201d means multiply'],
+  [frac+' \u00d7 '+n+' = '+ans,'do the multiplication']
+ ],[ans+'   \u2713',p+'% of '+n]);
+}
+function solveArith(raw){
+ if(!/^[\d+\-*\/\.() ]+$/.test(raw))throw 0;
+ // tokenise numbers and operators for step display
+ var toks=raw.match(/\d+\.?\d*|[+\-*\/()]/g);
+ var val;
+ try{val=Function('return ('+raw+')')();}catch(e){throw 0;}
+ if(!isFinite(val))throw 0;
+ var S=[[raw+'','start: follow BODMAS (brackets, of, division, multiplication, addition, subtraction)']];
+ // show multiplication/division first if present
+ var hasMD=/[\*\/]/.test(raw),hasB=/\(/.test(raw);
+ if(hasB)S.push(['resolve the brackets first','BODMAS: anything inside brackets comes first']);
+ if(hasMD)S.push([toks.join(' '),'do all \u00d7 and \u00f7 before + and -']);
+ S.push(['= '+Number(val.toFixed(10)),'finish with addition and subtraction, left to right']);
+ steps(S,[Number(val.toFixed(10))+'   \u2713','final answer']);
+}
+function terms(s){
+ return s.replace(/-/g,'+-').split('+').filter(function(x){return x!=='';}).map(function(x){return x.trim();});
+}
+function parseTerm(t){
+ var k=1,v='';var m=t.match(/^(-?\d*\.?\d*)(.*)$/);
+ if(m[1]!==''&&m[1]!=='-')k=parseFloat(m[1]);else if(m[1]==='-')k=-1;
+ v=m[2]||'';
+ return{k:k,v:v};
+}
+function mulName(a,b){
+ var pa=parseTerm(a),pb=parseTerm(b);
+ var k=pa.k*pb.k;var v='';
+ if(pa.v===pb.v&&pa.v!=='')v=pa.v+'^2';else v=(pa.v+pb.v).split('').sort().join('');
+ return {k:k,v:v};
+}
+function expand(raw){
+ var m=raw.match(/^\(([^()]+)\)\(([^()]+)\)$/);
+ if(!m)throw 0;
+ var e1=m[1],e2=m[2];
+ var p1=terms(e1),p2=terms(e2);
+ var S=[[raw,'start: two brackets multiply each other']];
+ var prods=[];
+ p1.forEach(function(a){p2.forEach(function(b){prods.push([a,b]);});});
+ var line=prods.map(function(p){var r=mulName(p[0],p[1]);return (r.k===1?'':r.k===-1?'-':r.k)+r.v;}).join(' + ');
+ S.push([line,'multiply every term in the first bracket by every term in the second (FOIL)']);
+ var comb={},plain=[],order=[];
+ prods.forEach(function(p){
+  var r=mulName(p[0],p[1]);
+  if(r.v===''){plain.push(r.k);}
+  else{if(!(r.v in comb)){comb[r.v]=0;order.push(r.v);}comb[r.v]+=r.k;}
+ });
+ var parts=[];
+ if(plain.length)parts.push(plain.join(' + '));
+ order.forEach(function(v){
+  var c=comb[v];
+  if(c===0)return;
+  parts.push((c===1?'':c===-1?'-':c)+v);
+ });
+ S.push([parts.join(' + '),'collect like terms (same variable parts add together)']);
+ var clean=parts.join(' + ').replace(/\+ -/g,'- ');
+ var ruleMsg='final answer';
+ if(/\^2/.test(clean)&&parts.length===2&&clean.indexOf('+ -')<0&&clean.indexOf(' - ')<0===false){ruleMsg='final answer';}
+ steps(S,[clean+'   \u2713',ruleMsg]);
+}
+function coef(v){return v===1?'':v===-1?'-':v;}
+function showP(v){return v<0?' - '+Math.abs(v):' + '+v;}
+function solveEq(raw){
+ var parts=raw.split('=');if(parts.length!==2)throw 0;
+ var L=parts[0],R=parts[1];
+ var S=[[raw,'start: the equation']];
+ var moved=L;
+ if(R!=='0'){
+  var rt=terms(R);
+  moved=L+rt.map(function(t){return '-'+t;}).join('');
+  S.push([moved+' = 0','move everything to one side: subtract ('+R+') from both sides']);
+ }
+ var tt=terms(moved.replace(/^0\+?/,''));
+ var a=0,b=0,c=0,hasX=false;
+ tt.forEach(function(t){
+  var m=t.match(/^(-?\d*\.?\d*)(x(\^2)?)$/);
+  if(m){hasX=true;
+   var k=(m[1]===''||m[1]==='-')?(m[1]==='-'?-1:1):parseFloat(m[1]);
+   if(m[3])a+=k;else b+=k;
+  }else{c+=parseFloat(t);}
+ });
+ if(!hasX)throw 0;
+ if(a===0){
+  S.push([coef(b)+'x'+showP(c)+' = 0','linear form: keep only the x term on one side']);
+  S.push([coef(b)+'x = '+(-c),'subtract '+c+' from both sides']);
+  S.push(['x = '+(-c)+' \u00f7 '+b,'divide both sides by '+b]);
+  steps(S,['x = '+Number(((-c)/b).toFixed(6)),'final answer']);
+  return;
+ }
+ S.push([coef(a)+'x^2'+showP(b)+'x'+showP(c)+' = 0','standard form: ax^2 + bx + c = 0  (a='+a+', b='+b+', c='+c+')']);
+ var d=b*b-4*a*c;
+ S.push(['D = b^2 - 4ac = ('+b+')^2 - 4('+a+')('+c+') = '+d,'discriminant: tells us the type of roots']);
+ if(d<0){steps(S,['no real solution','D < 0 means the curve never touches the x-axis']);return;}
+ S.push(['x = (-b \u00b1 \u221aD) / 2a','quadratic formula']);
+ var r=Math.sqrt(d);
+ var x1=(-b+r)/(2*a),x2=(-b-r)/(2*a);
+ if(d===0){steps(S,['x = '+Number(x1.toFixed(6)),'one repeated root']);return;}
+ steps(S,['x = '+Number(x1.toFixed(6))+'   or   x = '+Number(x2.toFixed(6)),'two roots (+ and -)']);
+}
+function simplify(raw){
+ var t=terms(raw);
+ var S=[[raw,'start: simplify the expression']];
+ var a=0,b=0,c=0,hasX=false;
+ t.forEach(function(x){
+  var m=x.match(/^(-?\d*\.?\d*)(x(\^2)?)$/);
+  if(m){hasX=true;
+   var k=(m[1]===''||m[1]==='-')?(m[1]==='-'?-1:1):parseFloat(m[1]);
+   if(m[3])a+=k;else b+=k;
+  }else if(!isNaN(parseFloat(x)))c+=parseFloat(x);else throw 0;
+ });
+ var out=[];
+ if(a)out.push(coef(a)+'x^2');
+ if(b)out.push(coef(b)+'x');
+ if(c||out.length===0)out.push((c<0?'- ':'')+Math.abs(c));
+ steps(S,[out.join(' + ').replace(/\+ -/g,'- '),'collect like terms: x^2 together, x together, numbers together']);
+}
+var PHY=[
+ {n:'Speed',v:'speed',f:'v = d / t',inp:[['d','distance (m)'],['t','time (s)']],calc:function(i){var r=i.d/i.t;return[r,'v = '+i.d+' / '+i.t+' = '+r+' m/s'];}},
+ {n:'Acceleration',v:'acc',f:'a = (v - u) / t',inp:[['v','final velocity (m/s)'],['u','initial velocity (m/s)'],['t','time (s)']],calc:function(i){var r=(i.v-i.u)/i.t;return[r,'a = ('+i.v+' - '+i.u+') / '+i.t+' = '+r+' m/s\u00b2'];}},
+ {n:'Force (F = ma)',v:'force',f:'F = m \u00d7 a',inp:[['m','mass (kg)'],['a','acceleration (m/s\u00b2)']],calc:function(i){var r=i.m*i.a;return[r,'F = '+i.m+' \u00d7 '+i.a+' = '+r+' N'];}},
+ {n:'Work',v:'work',f:'W = F \u00d7 d',inp:[['f','force (N)'],['d','distance (m)']],calc:function(i){var r=i.f*i.d;return[r,'W = '+i.f+' \u00d7 '+i.d+' = '+r+' J'];}},
+ {n:'Power',v:'power',f:'P = W / t',inp:[['w','work (J)'],['t','time (s)']],calc:function(i){var r=i.w/i.t;return[r,'P = '+i.w+' / '+i.t+' = '+r+' W'];}},
+ {n:'Ohms law',v:'ohm',f:'V = I \u00d7 R',inp:[['i','current (A)'],['r','resistance (ohms)']],calc:function(i){var r=i.i*i.r;return[r,'V = '+i.i+' \u00d7 '+i.r+' = '+r+' V'];}}
+];
+var curPhy=PHY[0];
+function renderPhy(){
+ document.getElementById('pGrid').innerHTML=PHY.map(function(p){return '<button class="'+(p.v===curPhy.v?'on':'')+'" onclick="pickPhy(\''+p.v+'\')">'+p.n+'</button>';}).join('');
+ document.getElementById('pInputs').innerHTML='<label>'+curPhy.f+'</label>'+curPhy.inp.map(function(x){return '<input type="number" id="p_'+x[0]+'" placeholder="'+x[1]+'" step="any">';}).join('');
+}
+function pickPhy(v){curPhy=PHY.filter(function(p){return p.v===v;})[0];renderPhy();}
+function solvePhy(){
+ var i={},ok=true;
+ curPhy.inp.forEach(function(x){var v=parseFloat(document.getElementById('p_'+x[0]).value);if(isNaN(v))ok=false;i[x[0]]=v;});
+ if(!ok){document.getElementById('out').innerHTML='<div class="card">fill all the boxes first</div>';return;}
+ var r=curPhy.calc(i);
+ document.getElementById('out').innerHTML='<div class="card">'
+  +'<div class="step"><div class="n">1</div><div><div class="expr">'+curPhy.f+'</div><div class="rule">the formula</div></div></div>'
+  +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
+  +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
+}
+function feedback(){
+ var f=prompt('Wetin you wan tell us? (question, suggestion or issue)');
+ if(f){
+  var u='mailto:ayalgafarii@gmail.com?subject='+encodeURIComponent('SolveSteps feedback')+'&body='+encodeURIComponent(f+'\n\n-- sent from SolveSteps app');
+  window.location.href=u;
+ }
+}
+renderPhy();
+
+// QUIZ + STREAKS
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function loadSave(){try{return JSON.parse(localStorage.getItem('ss_save')||'{}');}catch(e){return{};}}
+function saveSave(o){localStorage.setItem('ss_save',JSON.stringify(o));}
+function showStreak(){
+ var sv=loadSave();
+ var st=sv.streak||0,best=sv.best||0;
+ var last=sv.lastDay||'';
+ var yesterday=(function(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();})();
+ if(last===yesterday){/* streak still alive, will bump on first correct today */}
+ var msg='<div class="expr">\ud83d\udd25 streak: '+st+' day'+(st===1?'':'s')+' &nbsp;|&nbsp; best: '+best+'</div>';
+ msg+='<div class="rule">'+(last===todayStr()?'you don practice today - keep am going':'answer questions today to grow ur streak')+'</div>';
+ document.getElementById('streakCard').innerHTML=msg;
+}
+var QZ={i:0,score:0,qs:[]};
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function genQ(){
+ var type=rnd(0,3),q,a,opts,expl;
+ if(type===0){ // percent
+  var p=rnd(1,9)*10,n=rnd(2,20)*10;
+  q='What is '+p+'% of '+n+'?';
+  a=p/100*n;
+  expl=p+'% of '+n+' = '+(p/100)+' \u00d7 '+n+' = '+a;
+ }else if(type===1){ // linear eq
+  var m=rnd(2,9),x=rnd(1,12),c=rnd(1,30);
+  q='Solve: '+m+'x + '+c+' = '+(m*x+c);
+  a=x;
+  expl=m+'x = '+(m*x)+' , x = '+x;
+ }else if(type===2){ // arithmetic
+  var v1=rnd(6,15),v2=rnd(3,12),v3=rnd(2,20);
+  q=v1+' \u00d7 '+v2+' + '+v3+' = ?';
+  a=v1*v2+v3;
+  expl='BODMAS: '+v1+' \u00d7 '+v2+' = '+(v1*v2)+' , then + '+v3;
+ }else{ // difference of two squares value
+  var A=rnd(2,9),B=rnd(1,9);
+  q='('+A+'y + '+B+'x)('+A+'y - '+B+'x) = ?';
+  a=A*A; // coefficient of y^2
+  opts=[a, (A+B), (A*B), (A+B+1)];
+  return {q:q,a:a,opts:opts,expl:'difference of two squares: ('+A+'y)^2 - ('+B+'x)^2 = '+a+'y\u00b2 - '+(B*B)+'x\u00b2. y\u00b2 coefficient na '+a};
+ }
+ opts=[a,a+rnd(1,5),Math.max(0,a-rnd(1,5)),a+rnd(6,10)];
+ // dedupe
+ var seen={};opts=opts.map(function(o){return Math.round(o*1000)/1000;});
+ return {q:q,a:a,opts:opts,expl:expl};
+}
+function newQuiz(){
+ QZ={i:0,score:0,qs:[]};
+ for(var i=0;i<5;i++)QZ.qs.push(genQ());
+ renderQ();
+}
+function renderQ(){
+ var q=QZ.qs[QZ.i];
+ var opts=q.opts.slice().sort(function(){return Math.random()-0.5;});
+ var h='<div class="card"><div class="expr">Question '+(QZ.i+1)+' of 5</div><div class="expr" style="margin:10px 0">'+sq(q.q)+'</div>';
+ opts.forEach(function(o){
+  h+='<button class="eg" style="text-align:left;margin-top:6px" onclick="answer('+o+')">'+o+'</button>';
+ });
+ h+='</div>';
+ document.getElementById('quizArea').innerHTML=h;
+}
+function answer(v){
+ var q=QZ.qs[QZ.i];
+ var ok=(Math.abs(v-q.a)<0.001);
+ if(ok)QZ.score++;
+ document.getElementById('quizArea').innerHTML='<div class="card"><div class="expr">'+(ok?'\u2705 correct!':'\u274c wrong - answer na '+q.a)+'</div><div class="rule">'+q.expl+'</div></div>'
+ +'<button class="go" onclick="nextQ()">'+(QZ.i<4?'Next question':'See result')+'</button>';
+}
+function nextQ(){
+ QZ.i++;
+ if(QZ.i<5){renderQ();return;}
+ var sv=loadSave();
+ var d=todayStr();
+ if(sv.lastDay!==d){
+  var y=new Date();y.setDate(y.getDate()-1);
+  var ys=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+  sv.streak=(sv.lastDay===ys)?(sv.streak||0)+1:1;
+  sv.lastDay=d;
+  sv.best=Math.max(sv.best||0,sv.streak);
+  saveSave(sv);
+ }
+ showStreak();
+ var msg='<div class="card"><div class="expr">\ud83c\udfc6 '+QZ.score+'/5 correct</div>';
+ if(QZ.score>=4)msg+='<div class="rule">you too much! \ud83d\udd25 streak don update</div>';
+ else if(QZ.score>=2)msg+='<div class="rule">solid - tomorrow go better</div>';
+ else msg+='<div class="rule">no worry, check the steps tab make you learn the patterns</div>';
+ msg+='</div>';
+ document.getElementById('quizArea').innerHTML=msg;
+}
+renderPhy();
+</script>
+</body>
+</html>
