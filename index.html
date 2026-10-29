@@ -283,7 +283,7 @@ function showStreak(){
 var QZ={i:0,score:0,qs:[]};
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function genQ(){
- var type=rnd(0,3),q,a,opts,expl;
+ var type=rnd(0,7),q,a,opts,expl;
  if(type===0){ // percent
   var p=rnd(1,9)*10,n=rnd(2,20)*10;
   q='What is '+p+'% of '+n+'?';
@@ -299,6 +299,26 @@ function genQ(){
   q=v1+' \u00d7 '+v2+' + '+v3+' = ?';
   a=v1*v2+v3;
   expl='BODMAS: '+v1+' \u00d7 '+v2+' = '+(v1*v2)+' , then + '+v3;
+ }else if(type===4){ // indices (WAEC style)
+  var b=rnd(2,4),e=rnd(2,4),f=rnd(1,2);
+  q='Simplify: '+b+'^'+e+' \u00d7 '+b+'^'+f;
+  a=Math.pow(b,e+f);
+  expl='same base: add powers. '+b+'^'+e+' \u00d7 '+b+'^'+f+' = '+b+'^'+(e+f)+' = '+a;
+ }else if(type===5){ // ratio
+  var r1=rnd(2,5),r2=rnd(2,7),unit=rnd(2,12);
+  q='Divide '+(r1+r2)*unit+' in the ratio '+r1+':'+r2+'. What is the larger share?';
+  a=Math.max(r1,r2)*unit;
+  expl='total parts = '+(r1+r2)+', one part = '+((r1+r2)*unit)+' \u00f7 '+(r1+r2)+' = '+unit+'. Larger share = '+Math.max(r1,r2)+' \u00d7 '+unit+' = '+a;
+ }else if(type===6){ // physics F=ma (JAMB style)
+  var m2=rnd(2,10),acc=rnd(2,10);
+  q='A body of mass '+m2+' kg accelerates at '+acc+' m/s\u00b2. Find the force.';
+  a=m2*acc;
+  expl='F = ma = '+m2+' \u00d7 '+acc+' = '+a+' N';
+ }else if(type===7){ // speed
+  var d2=rnd(2,9)*10,h2=rnd(2,5);
+  q='A car travels '+d2+' km in '+h2+' hours. Find the average speed.';
+  a=d2/h2;
+  expl='speed = distance \u00f7 time = '+d2+' \u00f7 '+h2+' = '+a+' km/h';
  }else{ // difference of two squares value
   var A=rnd(2,9),B=rnd(1,9);
   q='('+A+'y + '+B+'x)('+A+'y - '+B+'x) = ?';
@@ -405,6 +425,15 @@ var EXPLAIN=[
   d:['Biology is the study of living things - cells, plants, animals, and how life works.','Branches: botany (plants), zoology (animals), genetics, ecology, microbiology.','Cell theory: all living things are made of cells, the basic unit of life.']},
  {k:['what is waec','what is the waec','meaning of waec'],t:'What is WAEC?',
   d:['WAEC means the West African Examinations Council - the body that conducts the WASSCE exams in West Africa.','Its results (A1 to F9 grades) are used for university admission in Nigeria and across West Africa.','A1 is the best grade; credit range is usually C6 and above.']},
+
+ {k:['what is jamb','meaning of jamb','define jamb'],t:'What is JAMB?',
+  d:['JAMB means Joint Admissions and Matriculation Board - the body that conducts the UTME exam for university admission in Nigeria.','It is a Computer-Based Test (CBT) of 4 subjects, scored over 400. Most universities want 180-200+, competitive courses want 250+.','To register, u need a National Identification Number (NIN). The exam holds once a year, around April/May.']},
+ {k:['what is neco','meaning of neco','define neco'],t:'What is NECO?',
+  d:['NECO means National Examinations Council - a Nigerian federal exam body, like WAEC but national.','It conducts SSCE (June/July) and GCE (Nov/Dec). Grades also run A1 to F9.','Credit passes (C6 and above) in 5 subjects including English and Maths qualify u for university.']},
+ {k:['difference between waec and jamb','waec vs jamb'],t:'WAEC vs JAMB - the difference',
+  d:['WAEC (WASSCE) is your secondary school leaving certificate exam - written on paper, covers your school subjects, graded A1-F9.','JAMB (UTME) is the university admission screening exam - written on computer, 4 subjects, scored over 400.','U need BOTH: WAEC credit passes + JAMB score = admission. WAEC asks theory and objective; JAMB is all objective (multiple choice).']},
+ {k:['how to pass waec','how to pass jamb','waec tips','jamb tips','how to prepare for waec','how to prepare for jamb'],t:'How to pass WAEC and JAMB',
+  d:['1. Get the syllabus for each subject - exam bodies test mostly what is listed there.','2. Practice past questions by year. Patterns repeat more than people think.','3. Master the basics first: fractions, indices, equations and formulas carry many marks.','4. For JAMB: speed matters. You have roughly 1 minute or less per question, so practice with a timer.','5. Use SolveSteps daily: scan any question u do not understand, see the steps, then try a similar one. Streaks keep u consistent.']},
  {k:['what is bodmas','meaning of bodmas','define bodmas'],t:'What is BODMAS?',
   d:['BODMAS is the order of operations: Brackets, Orders (powers), Division, Multiplication, Addition, Subtraction.','Always work in that order. Example: 2 + 3 x 4 = 2 + 12 = 14, NOT 20.','Brackets first is why (2 + 3) x 4 = 20.']},
 ];
