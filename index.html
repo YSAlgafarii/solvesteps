@@ -106,7 +106,28 @@ function solveMath(){
   if(raw.indexOf('=')>-1)return solveEq(raw);
   if(raw.indexOf(')(')>-1)return expand(raw);
   return simplify(raw);
- }catch(e){document.getElementById('out').innerHTML='<div class="card">could not parse that one yet - try the example format</div>';}
+ }catch(e){aiAnswer(document.getElementById('mIn').value);}
+}
+// ---- AI tutor fallback (free endpoint, no key in page) ----
+var AI_BUSY=false;
+function aiAnswer(q){
+  if(!q||AI_BUSY)return;
+  AI_BUSY=true;
+  document.getElementById('out').innerHTML='<div class="card">thinking... AI dey solve am</div>';
+  var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school students (WAEC/JAMB level). Solve or explain the question with clear numbered steps. Use simple English with a touch of Nigerian flavour. Keep it under 150 words. End with the final answer clearly.';
+  fetch('https://text.pollinations.ai/'+encodeURIComponent(q+' (answer with clear steps, short)')+'?system='+encodeURIComponent(sys))
+   .then(function(r){return r.text();})
+   .then(function(t){
+     AI_BUSY=false;
+     if(!t||t.length<3)throw new Error('empty');
+     var h='<div class="card"><div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
+      +'<div class="rule" style="white-space:pre-wrap">'+sq(t)+'</div></div>';
+     document.getElementById('out').innerHTML=h;
+     addSimilar();
+   }).catch(function(){
+     AI_BUSY=false;
+     document.getElementById('out').innerHTML='<div class="card">could not solve that one right now - try the example format, or check ur connection</div>';
+   });
 }
 // 20% of 840, or 20%840, or plain arithmetic like 12*8+5
 function solvePercent(raw){
