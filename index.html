@@ -91,6 +91,7 @@ function steps(arr,ans){
  arr.forEach(function(s,i){h+='<div class="step"><div class="n">'+(i+1)+'</div><div><div class="expr">'+sq(s[0])+'</div><div class="rule">'+s[1]+'</div></div></div>';});
  if(ans)h+='<div class="ans"><div class="expr">'+sq(ans[0])+'</div><div class="rule">'+ans[1]+'</div></div>';
  document.getElementById('out').innerHTML='<div class="card">'+h+'</div>';
+ addSimilar();
 }
 function strip(s){return s.replace(/\s+/g,'').replace(/\u2212/g,'-');}
 function solveMath(){
@@ -376,6 +377,53 @@ function nextQ(){
 }
 renderPhy();
 
+
+
+// ---- similar question practice ----
+var LAST_INPUT='';
+function addSimilar(){
+ LAST_INPUT=document.getElementById('mIn').value;
+ var old=document.getElementById('similarBtn');if(old)old.remove();
+ if(!LAST_INPUT)return;
+ var b=document.createElement('button');
+ b.id='similarBtn';b.className='go';b.style.background='#232848';
+ b.textContent='🔁 Practice a similar question';
+ b.onclick=similarQ;
+ document.getElementById('out').appendChild(b);
+}
+function similarQ(){
+ if(!LAST_INPUT)return;
+ var t=LAST_INPUT, m;
+ // linear equation ax+b=c -> generate variation
+ if((m=t.match(/([-?\d.]+)\s*\*?\s*x\s*([+-]\s*[\d.]+)?\s*=\s*([\d.]+)/))||(m=t.match(/([-?\d.]+)x\s*([+-][\d.]+)?=([\d.]+)/))){
+   var a=+m[1]||rnd(2,9),b2=rnd(1,30),x=rnd(1,12);
+   var q=a+'x + '+b2+' = '+(a*x+b2);
+   document.getElementById('mIn').value=q;solveMath();return;
+ }
+ // percentage: "20% of 840"
+ if((m=t.match(/^([\d.]+)%\s*(?:of)?\s*([\d.]+)$/))||(m=t.match(/([\d.]+)%([\d.]+)/))){
+   var p=rnd(1,9)*10,n=rnd(2,20)*10;
+   document.getElementById('mIn').value=p+'% of '+n;solveMath();return;
+ }
+ // plain arithmetic "12*8+5"
+ if(/[\d]/.test(t)&&/[+\-*]/.test(t)&&t.indexOf('=')<0&&t.indexOf(')')<0){
+   var v1=rnd(4,15),v2=rnd(2,9),v3=rnd(2,20),op=['+','*'][rnd(0,1)];
+   var q=v1+' '+op+' '+v2+' + '+v3;
+   document.getElementById('mIn').value=q;solveMath();return;
+ }
+ // difference of two squares "(6y + x)(6y - x)"
+ if(t.indexOf(')(')>-1){
+   var A=rnd(2,9),B=rnd(1,9);
+   document.getElementById('mIn').value='('+A+'y + '+B+'x)('+A+'y - '+B+'x)';solveMath();return;
+ }
+ // quadratic x^2+bx+c=0
+ if((m=t.match(/x\s*\^\s*2\s*([+-][\d.]+)x\s*([+-][\d.]+)\s*=\s*0/))){
+   var p=rnd(1,9),qq=rnd(1,9);
+   var b3=p+qq,c3=p*qq;
+   document.getElementById('mIn').value='x^2 + '+b3+'x + '+c3+' = 0';solveMath();return;
+ }
+ document.getElementById('mIn').value=LAST_INPUT;solveMath();
+}
 
 // ---- explain mode: word questions ----
 var EXPLAIN=[
