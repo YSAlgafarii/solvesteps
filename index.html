@@ -97,6 +97,7 @@ function solveMath(){
  var raw=strip(document.getElementById('mIn').value);
  if(!raw)return;
  try{
+  var ex=tryExplain(raw);if(ex){document.getElementById('out').innerHTML=ex;return;}
   if(/%/.test(raw))return solvePercent(raw);
   if(/^[\d+\-*\/\.() ]+$/.test(raw))return solveArith(raw);
   if(raw.indexOf('=')>-1)return solveEq(raw);
@@ -354,6 +355,73 @@ function nextQ(){
  document.getElementById('quizArea').innerHTML=msg;
 }
 renderPhy();
+
+
+// ---- explain mode: word questions ----
+var EXPLAIN=[
+ {k:['what is math','what is maths','meaning of math','define math'],t:'What is Mathematics?',
+  d:['Mathematics is the study of numbers, shapes, patterns and how things relate to each other.','It gives us rules for calculating, measuring and reasoning - adding, subtracting, solving equations, working with shapes and data.','In daily life: counting money, measuring land, cooking quantities, predicting change. It is the language every science uses.']},
+ {k:['what is physics','meaning of physics','define physics'],t:'What is Physics?',
+  d:['Physics is the science that studies matter, energy, motion and force - how the universe behaves.','It covers motion, gravity, electricity, light, sound, heat and atoms.','In daily life: a phone uses physics (electricity and waves), a car brakes by friction, a mango falls by gravity.']},
+ {k:['difference between math and physics','difference between maths and physics','math vs physics','maths vs physics'],t:'Mathematics vs Physics - the difference',
+  d:['Mathematics is a tool and a language: pure rules and patterns that do not need the real world to exist.','Physics USES mathematics to describe the real world - it tests its ideas with experiments.','Example: the equation x = vt is math (pure symbols). Dropping a ball and timing its fall is physics, using that math to describe reality.','Simple summary: math asks "is it correct?", physics asks "is it true in nature?"']},
+ {k:['what is algebra','meaning of algebra','define algebra'],t:'What is Algebra?',
+  d:['Algebra is the part of maths where letters stand for unknown numbers, e.g. x + 5 = 12.','It lets us write rules once and solve many problems: find x, simplify expressions, factorise.','Foundation for every higher topic: equations, graphs, calculus.']},
+ {k:['what is fraction','what are fractions','meaning of fraction'],t:'What is a Fraction?',
+  d:['A fraction shows a part of a whole, written as a/b: a is the part, b is the whole.','Example: 3/4 means 3 parts out of 4 equal parts.','Operations: same denominator add tops (3/4+1/4=4/4=1); different denominators, make them equal first (LCD).']},
+ {k:['what is percentage','what is percent','meaning of percentage'],t:'What is a Percentage?',
+  d:['A percentage is a fraction of 100. 25% means 25 out of every 100, i.e. 25/100 = 0.25.','To find x% of N: (x/100) x N. Example: 20% of 840 = 0.20 x 840 = 168.','Used for discounts, interest, exam scores and taxes.']},
+ {k:['what is geometry','meaning of geometry','define geometry'],t:'What is Geometry?',
+  d:['Geometry is the study of shapes, sizes, angles and positions.','Key ideas: points, lines, triangles, circles, area, perimeter, volume, Pythagoras theorem.','Used in building, land measurement, design and graphics.']},
+ {k:['what is trigonometry','meaning of trigonometry','define trigonometry'],t:'What is Trigonometry?',
+  d:['Trigonometry studies the relationship between angles and sides of triangles.','Core ratios: sin = opposite/hypotenuse, cos = adjacent/hypotenuse, tan = opposite/adjacent (SOH CAH TOA).','Used for heights and distances - finding how tall a building is from its shadow.']},
+ {k:['what is calculus','meaning of calculus','define calculus'],t:'What is Calculus?',
+  d:['Calculus studies change: how fast things change (differentiation) and accumulated change (integration).','Derivative = rate of change, e.g. speed is the derivative of distance.','Integral = total accumulated, e.g. distance from speed. Foundation of engineering and economics.']},
+ {k:['newton','law of motion','laws of motion'],t:"Newton's Laws of Motion",
+  d:['1st law: a body stays at rest or in uniform motion unless a force acts on it (inertia).','2nd law: force = mass x acceleration (F = ma).','3rd law: every action has an equal and opposite reaction.','Example: when you jump forward off a canoe, the canoe moves backward - action and reaction.']},
+ {k:['what is velocity','meaning of velocity','define velocity'],t:'What is Velocity?',
+  d:['Velocity is speed WITH direction. It is a vector quantity.','Velocity = displacement / time. Units: m/s.','A car going 60 km/h around a roundabout changes velocity even if speed is constant, because direction changes.']},
+ {k:['what is acceleration','meaning of acceleration','define acceleration'],t:'What is Acceleration?',
+  d:['Acceleration is the rate of change of velocity: how quickly speed increases or decreases.','a = (final velocity - initial velocity) / time. Units: m/s^2.','A car going 0 to 60 km/h in 10s accelerates at 6 km/h per second. Falling bodies accelerate at about 9.8 m/s^2 on Earth.']},
+ {k:['what is force','meaning of force','define force'],t:'What is Force?',
+  d:['A force is a push or pull that can change the motion, speed or shape of a body.','Force = mass x acceleration (F = ma). Units: newtons (N).','Types: contact (friction, tension) and non-contact (gravity, magnetism).']},
+ {k:['what is energy','meaning of energy','define energy'],t:'What is Energy?',
+  d:['Energy is the ability to do work. Units: joules (J).','Main forms: kinetic (motion), potential (stored position), heat, light, sound, electrical, chemical.','Law of conservation: energy cannot be created or destroyed, only changed from one form to another.']},
+ {k:['what is work','meaning of work in physics','define work'],t:'What is Work (in Physics)?',
+  d:['Work is done when a force moves a body through a distance in the direction of the force.','Work = force x distance. Units: joules (J).','Holding a heavy bag still is NOT work in physics - no distance moved, no matter how tired u feel.']},
+ {k:['what is power','meaning of power','define power'],t:'What is Power?',
+  d:['Power is the rate of doing work: how fast energy is used.','Power = work / time. Units: watts (W).','A 100 W bulb uses energy twice as fast as a 50 W bulb.']},
+ {k:['what is gravity','what is gravitational force','meaning of gravity'],t:'What is Gravity?',
+  d:['Gravity is the force of attraction between two masses - the Earth pulls everything toward its centre.','Weight = mass x gravitational acceleration (W = mg). On Earth g is about 9.8 m/s^2.','Mass never changes anywhere, but weight does: u weigh less on the moon because its g is smaller.']},
+ {k:['what is friction','meaning of friction','define friction'],t:'What is Friction?',
+  d:['Friction is the force that opposes motion between two surfaces in contact.','It can be useful (walking, brakes gripping) or wasteful (wear and tear, heat in machines).','Reduced by lubrication, rollers or smoothing surfaces.']},
+ {k:['what is electricity','meaning of electricity','define electricity'],t:'What is Electricity?',
+  d:['Electricity is the flow of electric charge, usually electrons through a wire.','Key relations: V = IR (Ohm’s law), P = VI, energy = P x t.','Units: volt (V) for potential, ampere (A) for current, ohm for resistance, watt (W) for power.']},
+ {k:['what is photosynthesis'],t:'What is Photosynthesis?',
+  d:['Photosynthesis is how green plants make their own food using sunlight.','Carbon dioxide + water + sunlight -> glucose + oxygen (happens in the chlorophyll of leaves).','It is why plants are the base of every food chain, and the source of the oxygen we breathe.']},
+ {k:['what is chemistry','meaning of chemistry','define chemistry'],t:'What is Chemistry?',
+  d:['Chemistry is the science of matter - what substances are made of, how they combine and change.','Central ideas: atoms, elements, compounds, mixtures, reactions, the periodic table.','In daily life: cooking, soap, drugs, fuel, batteries are all chemistry at work.']},
+ {k:['what is biology','meaning of biology','define biology'],t:'What is Biology?',
+  d:['Biology is the study of living things - cells, plants, animals, and how life works.','Branches: botany (plants), zoology (animals), genetics, ecology, microbiology.','Cell theory: all living things are made of cells, the basic unit of life.']},
+ {k:['what is waec','what is the waec','meaning of waec'],t:'What is WAEC?',
+  d:['WAEC means the West African Examinations Council - the body that conducts the WASSCE exams in West Africa.','Its results (A1 to F9 grades) are used for university admission in Nigeria and across West Africa.','A1 is the best grade; credit range is usually C6 and above.']},
+ {k:['what is bodmas','meaning of bodmas','define bodmas'],t:'What is BODMAS?',
+  d:['BODMAS is the order of operations: Brackets, Orders (powers), Division, Multiplication, Addition, Subtraction.','Always work in that order. Example: 2 + 3 x 4 = 2 + 12 = 14, NOT 20.','Brackets first is why (2 + 3) x 4 = 20.']},
+];
+function tryExplain(raw){
+  var t=raw.toLowerCase().replace(/[?.!,]/g,' ').replace(/\s+/g,' ').trim();
+  for(var i=0;i<EXPLAIN.length;i++){
+    for(var j=0;j<EXPLAIN[i].k.length;j++){
+      if(t.indexOf(EXPLAIN[i].k[j])>-1){
+        var h='<div class="card"><h3>'+EXPLAIN[i].t+'</h3>';
+        EXPLAIN[i].d.forEach(function(p){h+='<p style="margin:.4rem 0;color:#dbe2ff">'+p+'</p>';});
+        h+='</div>';
+        return h;
+      }
+    }
+  }
+  return null;
+}
 
 // ---- camera scan (OCR) ----
 function scanStatus(t){var el=document.getElementById('scanStatus');if(t){el.style.display='block';el.textContent=t;}else{el.style.display='none';}}
