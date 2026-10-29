@@ -39,6 +39,7 @@ label{font-size:.8rem;color:#8b93b0;display:block;margin:8px 0 4px}
 sup{font-size:.75em}
 .fb{position:fixed;bottom:16px;right:16px;padding:12px 18px;border:none;border-radius:24px;background:#5eead4;color:#0f1220;font-weight:700;font-size:.85rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -51,6 +52,9 @@ sup{font-size:.75em}
 </div>
 <div id="mathPane">
 <input type="text" id="mIn" placeholder="e.g. (6y + x)(6y - x)  or  2x + 5 = 15  or  x^2 - 5x + 6 = 0">
+<button class="go" style="background:#232848" onclick="document.getElementById('camFile').click()">📷 Scan a question</button>
+<input type="file" id="camFile" accept="image/*" capture="environment" style="display:none" onchange="scanImage(this)">
+<div id="scanStatus" style="display:none;color:#8fa0ff;font-size:.9rem;padding:8px 0"></div>
 <button class="go" onclick="solveMath()">Show steps</button>
 <button class="eg" onclick="eg()">Try example: (6y + x)(6y - x)</button>
 <div class="hint">works with: percentages (20% of 840), arithmetic (12*8+5), expansion, difference of two squares, linear and quadratic equations</div>
@@ -348,6 +352,34 @@ function nextQ(){
  document.getElementById('quizArea').innerHTML=msg;
 }
 renderPhy();
+
+// ---- camera scan (OCR) ----
+function scanStatus(t){var el=document.getElementById('scanStatus');if(t){el.style.display='block';el.textContent=t;}else{el.style.display='none';}}
+function cleanOcr(t){
+  return t.replace(/\u00d7|\u2715|\u2217/g,'*').replace(/\u00f7|\u2044/g,'/').replace(/\u2212|\u2013|\u2014/g,'-')
+   .replace(/[Oo](?=\d)/g,'0').replace(/(?<=\d)[Oo]/g,'0')
+   .replace(/[^0-9a-zA-Z+\-*/=().^ %\s]/g,' ')
+   .replace(/\s+/g,' ').trim();
+}
+function scanImage(inp){
+  var f=inp.files&&inp.files[0]; if(!f)return;
+  if(!window.Tesseract){scanStatus('OCR engine still loading, try again in a moment');return;}
+  scanStatus('Reading image...');
+  var reader=new FileReader();
+  reader.onload=function(e){
+    Tesseract.recognize(e.target.result,'eng',{logger:function(m){
+      if(m.status==='recognizing text')scanStatus('Reading image... '+Math.round(m.progress*100)+'%');
+    }}).then(function(r){
+      var txt=cleanOcr(r.data.text||'');
+      scanStatus('');
+      if(!txt){scanStatus("couldn't read anything from that photo, try better lighting or a straight-on shot");return;}
+      document.getElementById('mIn').value=txt;
+      solveMath();
+    }).catch(function(){scanStatus("scan failed, try again or type it in");});
+  };
+  reader.readAsDataURL(f);
+  inp.value='';
+}
 </script>
 </body>
 </html>
