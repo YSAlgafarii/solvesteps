@@ -379,6 +379,23 @@ renderPhy();
 
 
 
+
+function showPick(lines){
+  var box=document.getElementById('out');
+  var h='<div class="card"><div class="expr">we found '+lines.length+' questions in that photo - tap one to solve or explain it</div>';
+  lines.forEach(function(l,i){
+    h+='<button class="eg" style="text-align:left;margin-top:6px" onclick="useLine(this)">'+sq(l.slice(0,80))+'</button>';
+  });
+  h+='<div class="rule">theory questions (state, define, explain) get a full explanation if the topic is in the bank - calculation questions get full steps</div></div>';
+  box.innerHTML=h;
+}
+function useLine(btn){
+  var t=btn.textContent;
+  document.getElementById('mIn').value=t;
+  solveMath();
+  try{document.querySelector('.tabs').scrollIntoView();}catch(e){}
+}
+
 // ---- similar question practice ----
 var LAST_INPUT='';
 function addSimilar(){
@@ -520,6 +537,8 @@ function scanImage(inp){
       var txt=cleanOcr(r.data.text||'');
       scanStatus('');
       if(!txt){scanStatus("couldn't read anything from that photo, try better lighting or a straight-on shot");return;}
+      var lines=txt.split(/\n|(?=\u2022)/).map(function(x){return x.replace(/^[-\u2022\u2023\u25cf*]\s*/,'').trim();}).filter(function(x){return x.length>3;});
+      if(lines.length>1){showPick(lines);return;}
       document.getElementById('mIn').value=txt;
       solveMath();
     }).catch(function(){scanStatus("scan failed, try again or type it in");});
