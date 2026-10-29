@@ -99,6 +99,8 @@ function solveMath(){
  if(!raw)return;
  try{
   var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;return;}
+  var ph=phyFromText(document.getElementById('mIn').value);
+  if(ph){return renderPhyResult(ph.p,ph.vals);}
   if(/%/.test(raw))return solvePercent(raw);
   if(/^[\d+\-*\/\.() ]+$/.test(raw))return solveArith(raw);
   if(raw.indexOf('=')>-1)return solveEq(raw);
@@ -242,6 +244,44 @@ var PHY=[
  {n:'Power',v:'power',f:'P = W / t',inp:[['w','work (J)'],['t','time (s)']],calc:function(i){var r=i.w/i.t;return[r,'P = '+i.w+' / '+i.t+' = '+r+' W'];}},
  {n:'Ohms law',v:'ohm',f:'V = I \u00d7 R',inp:[['i','current (A)'],['r','resistance (ohms)']],calc:function(i){var r=i.i*i.r;return[r,'V = '+i.i+' \u00d7 '+i.r+' = '+r+' V'];}}
 ];
+
+// ---- natural-language physics: detect formula + values from one input ----
+var PHYUNITS=[['m','kg|kilogram|kilogramme'],['a','m/s2|m/s\u00b2|acceleration|ms-2'],['d','m|meter|metre|km|cm|distance'],['t','s|sec|second|seconds|min|minutes|hour|hours'],['v','m/s|km/h|velocity|speed'],['u','m/s|km/h'],['f','n|newton|newtons|force'],['w','j|joule|joules|work'],['i','a|amp|ampere|current'],['r','ohm|ohms|resistance']];
+function phyFromText(t){
+  t=t.toLowerCase();
+  var topic=null, kws={speed:['speed','velocity'],acc:['acceleration'],force:['force'],work:['work'],power:['power'],ohm:['ohm','voltage','current','resistance']};
+  for(var k in kws){for(var j=0;j<kws[k].length;j++){if(t.indexOf(kws[k][j])>-1){topic=k;break;}}}
+  if(!topic)return null;
+  // grab "label = value" and "value unit" pairs
+  function grab(re){var m=t.match(re);return m?parseFloat(m[1]):null;}
+  var g={};
+  g.d=grab(/(?:distance|d)\s*(?:=|is|of)?\s*([\d.]+)/)||grab(/([\d.]+)\s*(?:m|metre|meter|km|cm)\b/);
+  g.t=grab(/(?:time|t)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*(?:s|sec|second|seconds|minutes|min|hours?)\b/);
+  g.v=grab(/(?:final velocity|velocity|speed|v)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*m\/s\b/);
+  g.u=grab(/(?:initial velocity|from|u)\s*(?:=|is)?\s*([\d.]+)/)||0;
+  g.m=grab(/(?:mass|m)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*kg\b/);
+  g.a=grab(/(?:acceleration|a)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*m\/s2|([\d.]+)\s*m\/s\u00b2/);
+  g.f=grab(/(?:force|f)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*(?:n|newtons?)\b/);
+  g.w=grab(/(?:work|w)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*(?:j|joules?)\b/);
+  g.i=grab(/(?:current|i)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*(?:a|amp|ampere)\b/);
+  g.r=grab(/(?:resistance|r)\s*(?:=|is)?\s*([\d.]+)/)||grab(/([\d.]+)\s*ohms?\b/);
+  var need={speed:['d','t'],acc:['v','u','t'],force:['m','a'],work:['f','d'],power:['w','t'],ohm:['i','r']}[topic];
+  for(var n=0;n<need.length;n++){if(g[need[n]]===null||isNaN(g[need[n]]))return null;}
+  var p=PHY.filter(function(x){return x.v===topic;})[0], vals={},ok=true;
+  need.forEach(function(x){vals[x]=g[x];});
+  return {p:p,vals:vals};
+}
+
+
+function renderPhyResult(p,vals){
+  var r=p.calc(vals);
+  document.getElementById('out').innerHTML='<div class="card">'
+   +'<div class="step"><div class="n">1</div><div><div class="expr">'+p.f+'</div><div class="rule">'+p.n+' - the formula</div></div></div>'
+   +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
+   +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
+  addSimilar();
+}
+
 var curPhy=PHY[0];
 function renderPhy(){
  document.getElementById('pGrid').innerHTML=PHY.map(function(p){return '<button class="'+(p.v===curPhy.v?'on':'')+'" onclick="pickPhy(\''+p.v+'\')">'+p.n+'</button>';}).join('');
