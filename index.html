@@ -97,7 +97,7 @@ function solveMath(){
  var raw=strip(document.getElementById('mIn').value);
  if(!raw)return;
  try{
-  var ex=tryExplain(raw);if(ex){document.getElementById('out').innerHTML=ex;return;}
+  var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;return;}
   if(/%/.test(raw))return solvePercent(raw);
   if(/^[\d+\-*\/\.() ]+$/.test(raw))return solveArith(raw);
   if(raw.indexOf('=')>-1)return solveEq(raw);
