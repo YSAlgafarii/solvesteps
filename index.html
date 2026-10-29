@@ -52,8 +52,10 @@ sup{font-size:.75em}
 </div>
 <div id="mathPane">
 <input type="text" id="mIn" placeholder="e.g. (6y + x)(6y - x)  or  2x + 5 = 15  or  x^2 - 5x + 6 = 0">
-<button class="go" style="background:#232848" onclick="document.getElementById('camFile').click()">📷 Scan a question</button>
+<button class="go" style="background:#232848" onclick="document.getElementById('camFile').click()">📷 Take photo</button>
+<button class="go" style="background:#232848" onclick="document.getElementById('galFile').click()">🖼️ From gallery</button>
 <input type="file" id="camFile" accept="image/*" capture="environment" style="display:none" onchange="scanImage(this)">
+<input type="file" id="galFile" accept="image/*" style="display:none" onchange="scanImage(this)">
 <div id="scanStatus" style="display:none;color:#8fa0ff;font-size:.9rem;padding:8px 0"></div>
 <button class="go" onclick="solveMath()">Show steps</button>
 <button class="eg" onclick="eg()">Try example: (6y + x)(6y - x)</button>
