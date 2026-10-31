@@ -42,6 +42,7 @@ label{font-size:.8rem;color:var(--muted);display:block;margin:8px 0 4px;font-wei
 sup{font-size:.75em}
 .fb{position:fixed;bottom:16px;right:16px;padding:13px 20px;border:none;border-radius:24px;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-weight:800;font-size:.85rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,107,157,.4)}
 .streakbump{background:linear-gradient(120deg,#ffe27a,#ffb36b);border-radius:14px}
+.sharebar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.sharebar button{flex:1;min-width:130px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -90,11 +91,34 @@ function tab(t){
 }
 function eg(){document.getElementById('mIn').value='(6y + x)(6y - x)';solveMath();}
 function sq(s){return s.replace(/\^2/g,'<sup>2</sup>');}
+function solveShareLink(question){return 'https://ysalgafarii.github.io/solvesteps/?q='+encodeURIComponent(question);}
+function sharePayload(question,summary){return 'SolveSteps\nQuestion: '+question+'\nSolution: '+summary+'\nSolve this: '+solveShareLink(question);}
+function copySolveLink(link){
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(link).then(function(){alert('Solve link copied');}).catch(function(){copySolveLinkFallback(link);});}
+ else copySolveLinkFallback(link);
+}
+function copySolveLinkFallback(link){
+ var el=document.createElement('textarea');el.value=link;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();
+ try{document.execCommand('copy');alert('Solve link copied');}catch(e){prompt('Copy this solve link:',link);}document.body.removeChild(el);
+}
+function shareSolution(question,summary){
+ var link=solveShareLink(question),text=sharePayload(question,summary);
+ if(navigator.share){navigator.share({title:'SolveSteps solution',text:text,url:link}).catch(function(e){if(e&&e.name!=='AbortError')console.log('Share cancelled or unavailable');});return;}
+ var wa='https://wa.me/?text='+encodeURIComponent(text);
+ window.open(wa,'_blank');
+}
+function addShareControls(question,summary){
+ var box=document.getElementById('out'),bar=document.createElement('div');bar.className='sharebar';
+ if(navigator.share){var b=document.createElement('button');b.className='eg';b.textContent='Share solution';b.onclick=function(){shareSolution(question,summary);};bar.appendChild(b);}
+ else{var w=document.createElement('button');w.className='eg';w.textContent='Share on WhatsApp';w.onclick=function(){shareSolution(question,summary);};var c=document.createElement('button');c.className='eg';c.textContent='Copy link';c.onclick=function(){copySolveLink(solveShareLink(question));};bar.appendChild(w);bar.appendChild(c);}
+ box.appendChild(bar);
+}
 function steps(arr,ans){
  var h='';
  arr.forEach(function(s,i){h+='<div class="step"><div class="n">'+(i+1)+'</div><div><div class="expr">'+sq(s[0])+'</div><div class="rule">'+s[1]+'</div></div></div>';});
  if(ans)h+='<div class="ans"><div class="expr">'+sq(ans[0])+'</div><div class="rule">'+ans[1]+'</div></div>';
  document.getElementById('out').innerHTML='<div class="card">'+h+'</div>';
+ addShareControls(document.getElementById('mIn').value,ans?ans[0]:'Step-by-step solution');
  addSimilar();
 }
 function strip(s){return s.replace(/\s+/g,'').replace(/\u2212/g,'-');}
@@ -102,7 +126,7 @@ function solveMath(){
  var raw=strip(document.getElementById('mIn').value);
  if(!raw)return;
  try{
-  var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;return;}
+  var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;var explText=document.getElementById('out').textContent.trim();addShareControls(document.getElementById('mIn').value,explText.slice(0,180));return;}
   var ph=phyFromText(document.getElementById('mIn').value);
   if(ph){return renderPhyResult(ph.p,ph.vals);}
   if(/%/.test(raw))return solvePercent(raw);
@@ -127,6 +151,7 @@ function aiAnswer(q){
      var h='<div class="card"><div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
       +'<div class="rule" style="white-space:pre-wrap">'+sq(t)+'</div></div>';
      document.getElementById('out').innerHTML=h;
+     addShareControls(q,t.replace(/\s+/g,' ').slice(0,180));
      addSimilar();
    }).catch(function(){
      AI_BUSY=false;
@@ -304,6 +329,7 @@ function renderPhyResult(p,vals){
    +'<div class="step"><div class="n">1</div><div><div class="expr">'+p.f+'</div><div class="rule">'+p.n+' - the formula</div></div></div>'
    +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
    +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
+  addShareControls(document.getElementById('mIn').value,r[1]);
   addSimilar();
 }
 
@@ -322,6 +348,7 @@ function solvePhy(){
   +'<div class="step"><div class="n">1</div><div><div class="expr">'+curPhy.f+'</div><div class="rule">the formula</div></div></div>'
   +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
   +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
+ addShareControls(curPhy.n+': '+r[1],String(r[0]));
 }
 function feedback(){
  var f=prompt('Wetin you wan tell us? (question, suggestion or issue)');
@@ -611,6 +638,8 @@ function scanImage(inp){
   reader.readAsDataURL(f);
   inp.value='';
 }
+var sharedQuestion=new URLSearchParams(window.location.search).get('q');
+if(sharedQuestion){document.getElementById('mIn').value=sharedQuestion;solveMath();}
 </script>
 </body>
 </html>
