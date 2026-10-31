@@ -43,6 +43,23 @@ sup{font-size:.75em}
 .fb{position:fixed;bottom:16px;right:16px;padding:13px 20px;border:none;border-radius:24px;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-weight:800;font-size:.85rem;cursor:pointer;box-shadow:0 6px 18px rgba(255,107,157,.4)}
 .streakbump{background:linear-gradient(120deg,#ffe27a,#ffb36b);border-radius:14px}
 .sharebar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.sharebar button{flex:1;min-width:130px}
+body{padding-bottom:104px}
+.section[hidden]{display:none!important}
+.bottom-nav{position:fixed;z-index:20;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,672px);padding:9px 12px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:rgba(255,255,255,.96);border:1px solid rgba(124,108,246,.14);border-bottom:0;border-radius:22px 22px 0 0;box-shadow:0 -8px 28px rgba(29,35,64,.12);backdrop-filter:blur(12px)}
+.bottom-nav button{border:0;background:transparent;color:var(--muted);border-radius:15px;padding:7px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;font-family:inherit;font-size:.72rem;font-weight:700}
+.bottom-nav button .nav-icon{font-size:1.2rem;line-height:1}
+.bottom-nav button.on{background:linear-gradient(120deg,#fff0f5,#f0edff);color:var(--purple)}
+.scan-actions{display:grid;gap:9px}
+.profile-hero{background:linear-gradient(120deg,#ffeff4,#f1efff);border-radius:18px;padding:16px}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.stat-tile{background:#fff;border-radius:15px;padding:13px;box-shadow:0 3px 12px rgba(29,35,64,.06)}
+.stat-tile strong{display:block;font-size:1.3rem;color:var(--purple);margin-top:4px}
+.badge-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.badge{border-radius:999px;background:#fff0c7;color:#725600;padding:8px 11px;font-size:.78rem;font-weight:800}
+.badge.locked{background:#f1f2f8;color:#8b90a8}
+.connect-buttons{display:flex;gap:8px;margin-top:10px}.connect-buttons button{flex:1;padding:12px;border:1px solid #e4e2f5;border-radius:13px;background:#f7f7fb;color:#878ba3;font-weight:800}
+.coming-note{font-size:.78rem;color:var(--muted);margin-top:8px}
+@media(min-width:700px){.bottom-nav{bottom:12px;border:1px solid rgba(124,108,246,.14);border-radius:22px}.bottom-nav button{flex-direction:row;justify-content:center;font-size:.85rem}.bottom-nav button .nav-icon{font-size:1rem}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -50,6 +67,7 @@ sup{font-size:.75em}
 <div class="wrap">
 <h1>Solve<span>Steps</span></h1>
 <div class="sub">type a problem, see every step - not just the answer</div>
+<section id="solveSection" class="section">
 <div class="tabs">
 <button id="tabMath" class="on" onclick="tab('math')">Maths</button>
 <button id="tabPhy" onclick="tab('phy')">Physics</button>
@@ -57,11 +75,6 @@ sup{font-size:.75em}
 </div>
 <div id="mathPane">
 <input type="text" id="mIn" placeholder="e.g. (6y + x)(6y - x)  or  2x + 5 = 15  or  x^2 - 5x + 6 = 0">
-<button class="go" style="background:rgba(255,255,255,.85);color:#7c6cf6" onclick="document.getElementById('camFile').click()">📷 Take photo</button>
-<button class="go" style="background:rgba(255,255,255,.85);color:#7c6cf6" onclick="document.getElementById('galFile').click()">🖼️ From gallery</button>
-<input type="file" id="camFile" accept="image/*" capture="environment" style="display:none" onchange="scanImage(this)">
-<input type="file" id="galFile" accept="image/*" style="display:none" onchange="scanImage(this)">
-<div id="scanStatus" style="display:none;color:#8fa0ff;font-size:.9rem;padding:8px 0"></div>
 <button class="go" onclick="solveMath()">Show steps</button>
 <button class="eg" onclick="eg()">Try example: (6y + x)(6y - x)</button>
 <div class="hint">works with: percentages (20% of 840), arithmetic (12*8+5), expansion, difference of two squares, linear and quadratic equations</div>
@@ -77,9 +90,50 @@ sup{font-size:.75em}
 <div id="quizArea"></div>
 </div>
 <div id="out"></div>
+</section>
+<section id="scanSection" class="section" hidden>
+<div class="card">
+<h2>Scan a question</h2>
+<p class="hint">Use your camera or choose a photo. SolveSteps will read the question with OCR.</p>
+<div class="scan-actions" style="margin-top:12px">
+<button class="go" style="background:linear-gradient(120deg,var(--pink),var(--purple))" onclick="document.getElementById('camFile').click()">📷 Take photo</button>
+<button class="go" style="background:rgba(255,255,255,.85);color:#7c6cf6" onclick="document.getElementById('galFile').click()">🖼️ Choose from gallery</button>
+</div>
+<input type="file" id="camFile" accept="image/*" capture="environment" style="display:none" onchange="scanImage(this)">
+<input type="file" id="galFile" accept="image/*" style="display:none" onchange="scanImage(this)">
+<div id="scanStatus" style="display:none;color:#8fa0ff;font-size:.9rem;padding:8px 0"></div>
+</div>
+</section>
+<section id="profileSection" class="section" hidden>
+<div class="card">
+<div class="profile-hero"><h2>Your profile</h2><div class="rule" id="installState">checking app status...</div></div>
+<div class="profile-grid">
+<div class="stat-tile">🔥 streak<strong id="profileStreak">0 days</strong></div>
+<div class="stat-tile">✅ solved<strong id="profileSolved">0</strong></div>
+<div class="stat-tile">🏆 quiz best<strong id="profileQuizBest">0/5</strong></div>
+<div class="stat-tile">📲 app<strong id="profileInstalled">not installed</strong></div>
+</div>
+<div class="card"><h3>Badges</h3><div class="badge-list" id="badgeList"></div></div>
+<div class="card"><h3>Connect</h3><p class="hint">Social sign-in will connect here when SolveSteps moves to Supabase.</p>
+<div class="connect-buttons"><button type="button" disabled aria-disabled="true">Google</button><button type="button" disabled aria-disabled="true">X</button></div>
+<div class="coming-note">coming soon</div></div>
+</div>
+</section>
 </div>
 <button class="fb" onclick="feedback()">💬 Feedback</button>
+<nav class="bottom-nav" aria-label="Main navigation">
+<button type="button" class="on" data-section="solve" onclick="navSection('solve')"><span class="nav-icon">✏️</span><span>Solve</span></button>
+<button type="button" data-section="scan" onclick="navSection('scan')"><span class="nav-icon">📷</span><span>Scan</span></button>
+<button type="button" data-section="quiz" onclick="navSection('quiz')"><span class="nav-icon">🎯</span><span>Quiz</span></button>
+<button type="button" data-section="profile" onclick="navSection('profile')"><span class="nav-icon">👤</span><span>Profile</span></button>
+</nav>
 <script>
+function navSection(s){
+ if(s==='quiz'){document.getElementById('solveSection').hidden=false;document.getElementById('scanSection').hidden=true;document.getElementById('profileSection').hidden=true;tab('quiz');}
+ else{document.getElementById('solveSection').hidden=s!=='solve';document.getElementById('scanSection').hidden=s!=='scan';document.getElementById('profileSection').hidden=s!=='profile';if(s==='solve')tab('math');}
+ document.querySelectorAll('.bottom-nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-section')===s);});
+ if(s==='profile')renderProfile();
+}
 function tab(t){
  document.getElementById('tabMath').classList.toggle('on',t=='math');
  document.getElementById('tabPhy').classList.toggle('on',t=='phy');
@@ -118,6 +172,7 @@ function steps(arr,ans){
  arr.forEach(function(s,i){h+='<div class="step"><div class="n">'+(i+1)+'</div><div><div class="expr">'+sq(s[0])+'</div><div class="rule">'+s[1]+'</div></div></div>';});
  if(ans)h+='<div class="ans"><div class="expr">'+sq(ans[0])+'</div><div class="rule">'+ans[1]+'</div></div>';
  document.getElementById('out').innerHTML='<div class="card">'+h+'</div>';
+ noteSolved();
  addShareControls(document.getElementById('mIn').value,ans?ans[0]:'Step-by-step solution');
  addSimilar();
 }
@@ -126,7 +181,7 @@ function solveMath(){
  var raw=strip(document.getElementById('mIn').value);
  if(!raw)return;
  try{
-  var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;var explText=document.getElementById('out').textContent.trim();addShareControls(document.getElementById('mIn').value,explText.slice(0,180));return;}
+  var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;noteSolved();var explText=document.getElementById('out').textContent.trim();addShareControls(document.getElementById('mIn').value,explText.slice(0,180));return;}
   var ph=phyFromText(document.getElementById('mIn').value);
   if(ph){return renderPhyResult(ph.p,ph.vals);}
   if(/%/.test(raw))return solvePercent(raw);
@@ -151,6 +206,7 @@ function aiAnswer(q){
      var h='<div class="card"><div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
       +'<div class="rule" style="white-space:pre-wrap">'+sq(t)+'</div></div>';
      document.getElementById('out').innerHTML=h;
+     noteSolved();
      addShareControls(q,t.replace(/\s+/g,' ').slice(0,180));
      addSimilar();
    }).catch(function(){
@@ -330,6 +386,7 @@ function renderPhyResult(p,vals){
    +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
    +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
   addShareControls(document.getElementById('mIn').value,r[1]);
+  noteSolved();
   addSimilar();
 }
 
@@ -349,6 +406,7 @@ function solvePhy(){
   +'<div class="step"><div class="n">2</div><div><div class="expr">'+r[1]+'</div><div class="rule">substitute the values</div></div></div>'
   +'</div><div class="ans"><div class="expr">'+r[0]+' \u2713</div><div class="rule">final answer</div></div>';
  addShareControls(curPhy.n+': '+r[1],String(r[0]));
+ noteSolved();
 }
 function feedback(){
  var f=prompt('Wetin you wan tell us? (question, suggestion or issue)');
@@ -363,6 +421,19 @@ renderPhy();
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function loadSave(){try{return JSON.parse(localStorage.getItem('ss_save')||'{}');}catch(e){return{};}}
 function saveSave(o){localStorage.setItem('ss_save',JSON.stringify(o));}
+function syncBadges(sv){sv.badgesEarned=[];if((sv.solvedCount||0)>=1)sv.badgesEarned.push('first-solve');if((sv.solvedCount||0)>=5)sv.badgesEarned.push('five-solves');if((sv.solvedCount||0)>=10)sv.badgesEarned.push('ten-solves');if((sv.streak||0)>=7)sv.badgesEarned.push('seven-day-streak');}
+function noteSolved(){var sv=loadSave();sv.solvedCount=(sv.solvedCount||0)+1;syncBadges(sv);saveSave(sv);}
+function renderProfile(){
+ var sv=loadSave(),count=sv.solvedCount||0,streak=sv.streak||0,best=sv.quizBest||0;
+ document.getElementById('profileStreak').textContent=streak+' day'+(streak===1?'':'s');
+ document.getElementById('profileSolved').textContent=count;
+ document.getElementById('profileQuizBest').textContent=best+'/5';
+ var installed=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+ document.getElementById('profileInstalled').textContent=installed?'installed':'not installed';
+ document.getElementById('installState').textContent=installed?'app installed on this device':'using SolveSteps in a browser';
+ var badges=[['🌟 First solve',count>=1],['🖐️ 5 solves',count>=5],['🔟 10 solves',count>=10],['🔥 7-day streak',streak>=7]];
+ document.getElementById('badgeList').innerHTML=badges.map(function(b){return '<span class="badge '+(b[1]?'':'locked')+'">'+b[0]+(b[1]?'':' · locked')+'</span>';}).join('');
+}
 function showStreak(){
  var sv=loadSave();
  var st=sv.streak||0,best=sv.best||0;
@@ -450,6 +521,7 @@ function nextQ(){
  QZ.i++;
  if(QZ.i<5){renderQ();return;}
  var sv=loadSave();
+ sv.quizBest=Math.max(sv.quizBest||0,QZ.score);
  var d=todayStr();
  if(sv.lastDay!==d){
   var y=new Date();y.setDate(y.getDate()-1);
@@ -457,8 +529,9 @@ function nextQ(){
   sv.streak=(sv.lastDay===ys)?(sv.streak||0)+1:1;
   sv.lastDay=d;
   sv.best=Math.max(sv.best||0,sv.streak);
-  saveSave(sv);
  }
+ syncBadges(sv);
+ saveSave(sv);
  showStreak();
  var msg='<div class="card"><div class="expr">\ud83c\udfc6 '+QZ.score+'/5 correct</div>';
  if(QZ.score>=4)msg+='<div class="rule">you too much! \ud83d\udd25 streak don update</div>';
@@ -630,8 +703,9 @@ function scanImage(inp){
       scanStatus('');
       if(!txt){scanStatus("couldn't read anything from that photo, try better lighting or a straight-on shot");return;}
       var lines=txt.split(/\n|(?=\u2022)/).map(function(x){return x.replace(/^[-\u2022\u2023\u25cf*]\s*/,'').trim();}).filter(function(x){return x.length>3;});
-      if(lines.length>1){showPick(lines);return;}
+      if(lines.length>1){navSection('solve');showPick(lines);return;}
       document.getElementById('mIn').value=txt;
+      navSection('solve');
       solveMath();
     }).catch(function(){scanStatus("scan failed, try again or type it in");});
   };
