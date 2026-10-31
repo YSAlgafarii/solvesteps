@@ -19,9 +19,10 @@ body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:linear-grad
 h1{font-size:1.6rem;margin-bottom:2px;font-weight:800}
 h1 span{color:var(--pink)}
 .sub{color:var(--muted);font-size:.9rem;margin-bottom:16px}
-.tabs{display:flex;gap:8px;margin-bottom:12px}
-.tabs button{flex:1;padding:11px;border:2px solid transparent;background:rgba(255,255,255,.75);color:var(--ink);border-radius:14px;font-size:.9rem;cursor:pointer;transition:transform .15s}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}
+.tabs button{min-width:0;padding:10px 5px;border:2px solid transparent;background:rgba(255,255,255,.75);color:var(--ink);border-radius:14px;font-size:.78rem;cursor:pointer;transition:transform .15s}
 .tabs button.on{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(124,108,246,.35)}
+.study-list{display:grid;gap:10px;margin-top:12px}.study-card{width:100%;text-align:left;border:0;border-radius:16px;padding:14px;background:#fff;box-shadow:0 5px 16px rgba(29,35,64,.08);color:var(--ink);cursor:pointer}.study-card h3{color:var(--purple);margin-bottom:5px}.study-card .rule{line-height:1.5}.study-card-detail p{margin:.45rem 0;line-height:1.5}.study-card-detail{background:#fff;border-radius:16px;padding:14px;margin-top:10px}.quiz-select{margin-top:8px}
 input[type=text],input[type=number],select{width:100%;padding:15px;border-radius:14px;border:2px solid #ffd3e0;background:var(--card);color:var(--ink);font-size:1rem;margin-bottom:10px;box-shadow:0 2px 10px rgba(29,35,64,.06)}
 input:focus{outline:none;border-color:var(--pink)}
 .go{width:100%;padding:15px;border:none;border-radius:14px;background:linear-gradient(120deg,var(--teal),#00cec9);color:#fff;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,184,148,.35);transition:transform .15s}
@@ -68,9 +69,13 @@ body{padding-bottom:104px}
 <h1>Solve<span>Steps</span></h1>
 <div class="sub">type a problem, see every step - not just the answer</div>
 <section id="solveSection" class="section">
-<div class="tabs">
+<div class="tabs" id="subjectTabs">
 <button id="tabMath" class="on" onclick="tab('math')">Maths</button>
 <button id="tabPhy" onclick="tab('phy')">Physics</button>
+<button id="tabChem" onclick="tab('chem')">Chemistry</button>
+<button id="tabBio" onclick="tab('bio')">Biology</button>
+<button id="tabEcon" onclick="tab('econ')">Economics</button>
+<button id="tabEng" onclick="tab('eng')">English</button>
 <button id="tabQuiz" onclick="tab('quiz')">Quiz</button>
 </div>
 <div id="mathPane">
@@ -86,9 +91,11 @@ body{padding-bottom:104px}
 </div>
 <div id="quizPane" style="display:none">
 <div class="card" id="streakCard"></div>
+<label for="quizSubject">Quiz subject</label><select id="quizSubject" class="quiz-select"><option value="mixed">Mixed subjects</option><option value="math">Maths</option><option value="phy">Physics</option><option value="chem">Chemistry</option><option value="bio">Biology</option><option value="econ">Economics</option><option value="eng">English</option></select>
 <button class="go" onclick="newQuiz()" style="margin-top:12px">Daily challenge + practice</button>
 <div id="quizArea"></div>
 </div>
+<div id="studyPane" style="display:none"><div class="card"><h3 id="studyTutorTitle"></h3><p class="hint">Type a question for the AI tutor. Full step-solver support is for Maths and Physics.</p><input type="text" id="stIn" placeholder="Ask a question in this subject" onkeydown="if(event.key==='Enter'){document.getElementById('mIn').value=this.value;solveMath()}"><button class="go" onclick="document.getElementById('mIn').value=document.getElementById('stIn').value;solveMath()">Ask AI tutor</button></div><div id="studyContent"></div></div>
 <div id="out"></div>
 </section>
 <section id="scanSection" class="section" hidden>
@@ -134,14 +141,19 @@ function navSection(s){
  document.querySelectorAll('.bottom-nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-section')===s);});
  if(s==='profile')renderProfile();
 }
+var CUR_SUBJECT='math';
+var STUDY_SUBJECTS=['chem','bio','econ','eng'];
 function tab(t){
- document.getElementById('tabMath').classList.toggle('on',t=='math');
- document.getElementById('tabPhy').classList.toggle('on',t=='phy');
- document.getElementById('tabQuiz').classList.toggle('on',t=='quiz');
- document.getElementById('mathPane').style.display=t=='math'?'block':'none';
- document.getElementById('phyPane').style.display=t=='phy'?'block':'none';
- document.getElementById('quizPane').style.display=t=='quiz'?'block':'none';
- if(t=='quiz')showStreak();
+ if(['math','phy'].concat(STUDY_SUBJECTS).indexOf(t)>-1)CUR_SUBJECT=t;
+ var subjects=['math','phy','chem','bio','econ','eng','quiz'];
+ var caps={math:'Math',phy:'Phy',chem:'Chem',bio:'Bio',econ:'Econ',eng:'Eng',quiz:'Quiz'};
+ subjects.forEach(function(s){var b=document.getElementById('tab'+caps[s]);if(b)b.classList.toggle('on',t===s);});
+ document.getElementById('mathPane').style.display=t==='math'?'block':'none';
+ document.getElementById('phyPane').style.display=t==='phy'?'block':'none';
+ document.getElementById('quizPane').style.display=t==='quiz'?'block':'none';
+ document.getElementById('studyPane').style.display=STUDY_SUBJECTS.indexOf(t)>-1?'block':'none';
+ if(STUDY_SUBJECTS.indexOf(t)>-1)renderStudy(t);
+ if(t==='quiz')showStreak();
 }
 function eg(){document.getElementById('mIn').value='(6y + x)(6y - x)';solveMath();}
 function sq(s){return s.replace(/\^2/g,'<sup>2</sup>');}
@@ -178,8 +190,15 @@ function steps(arr,ans){
 }
 function strip(s){return s.replace(/\s+/g,'').replace(/\u2212/g,'-');}
 function solveMath(){
- var raw=strip(document.getElementById('mIn').value);
+ var question=document.getElementById('mIn').value;
+ var raw=strip(question);
  if(!raw)return;
+ if(STUDY_SUBJECTS.indexOf(CUR_SUBJECT)>-1){
+var studyName=STUDY[CUR_SUBJECT].name;
+  document.getElementById('out').innerHTML='<div class="card"><div class="rule"><strong>'+studyName+' AI tutor</strong>. Full step-solver support is for Maths and Physics; this subject is answered by the AI tutor.</div></div>';
+  AI_CONTEXT_NOTE=studyName+': full step-solver support is for Maths and Physics. Answered by the AI tutor.';
+  aiAnswer(question);return;
+ }
  try{
   var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;noteSolved();var explText=document.getElementById('out').textContent.trim();addShareControls(document.getElementById('mIn').value,explText.slice(0,180));return;}
   var ph=phyFromText(document.getElementById('mIn').value);
@@ -192,18 +211,19 @@ function solveMath(){
  }catch(e){aiAnswer(document.getElementById('mIn').value);}
 }
 // ---- AI tutor fallback (free endpoint, no key in page) ----
-var AI_BUSY=false;
+var AI_BUSY=false,AI_CONTEXT_NOTE='';
 function aiAnswer(q){
   if(!q||AI_BUSY)return;
   AI_BUSY=true;
-  document.getElementById('out').innerHTML='<div class="card">thinking... AI dey solve am</div>';
+  var contextNote=AI_CONTEXT_NOTE;AI_CONTEXT_NOTE='';
+  document.getElementById('out').innerHTML='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'thinking... AI dey solve am</div>';
   var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school students (WAEC/JAMB level). Solve or explain the question with clear numbered steps. Use simple English with a touch of Nigerian flavour. Keep it under 150 words. End with the final answer clearly.';
   fetch('https://text.pollinations.ai/'+encodeURIComponent(q+' (answer with clear steps, short)')+'?system='+encodeURIComponent(sys))
    .then(function(r){return r.text();})
    .then(function(t){
      AI_BUSY=false;
      if(!t||t.length<3)throw new Error('empty');
-     var h='<div class="card"><div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
+     var h='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'<div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
       +'<div class="rule" style="white-space:pre-wrap">'+sq(t)+'</div></div>';
      document.getElementById('out').innerHTML=h;
      noteSolved();
@@ -417,6 +437,100 @@ function feedback(){
 }
 renderPhy();
 
+// ---- new WAEC/JAMB study cards and original practice questions ----
+var STUDY={
+ chem:{name:'Chemistry',cards:[
+ ['Periodic table basics',['Elements are arranged by increasing atomic number, the number of protons in each atom.','A group is a vertical column; elements in the same group often have similar chemical properties because they have the same number of outer-shell electrons.','A period is a horizontal row and shows the number of occupied electron shells.']],
+ ['Atoms, ions and isotopes',['An atom has protons and neutrons in its nucleus, with electrons around it.','A neutral atom has equal numbers of protons and electrons. Losing electrons forms a positive ion; gaining them forms a negative ion.','Isotopes are atoms of the same element with equal proton numbers but different neutron numbers.']],
+ ['The mole concept',['One mole contains 6.02 × 10²³ particles (Avogadro constant).','Moles = mass ÷ molar mass. For example, 18 g of water is 1 mol because its molar mass is 18 g/mol.','Use a balanced chemical equation to compare reacting mole ratios.']],
+ ['Acids and bases',['An acid produces H⁺ ions in water; an alkali is a soluble base that produces OH⁻ ions.','Acid + base → salt + water. This is neutralisation.','Blue litmus turns red in acid; red litmus turns blue in alkali. pH below 7 is acidic, 7 neutral, above 7 alkaline.']],
+ ['Balancing equations',['A chemical equation must have the same number of each type of atom on both sides.','Change coefficients in front of formulae, never the small subscripts inside a formula.','Example: 2H₂ + O₂ → 2H₂O has four hydrogen atoms and two oxygen atoms on each side.']],
+ ['Chemical bonding',['Ionic bonding involves electron transfer, usually from a metal to a non-metal; oppositely charged ions attract.','Covalent bonding involves atoms sharing electron pairs, usually between non-metals.','Metals bond through positive ions and delocalised electrons, helping explain conductivity and malleability.']],
+ ['Rates of reaction',['Rate measures how quickly reactants are used or products form.','Higher temperature, concentration, pressure for gases, or greater surface area can increase collision frequency or energy.','A catalyst speeds a reaction by providing a lower-activation-energy route and is not used up overall.']],
+ ['Separation of mixtures',['Filtration separates an insoluble solid from a liquid; evaporation or crystallisation recovers a dissolved solid.','Simple distillation separates a solvent from a solution; fractional distillation separates miscible liquids with different boiling points.','Chromatography separates dissolved substances by their different attractions to the mobile and stationary phases.']]
+ ]},
+ bio:{name:'Biology',cards:[
+ ['Cell structure',['The cell membrane controls movement in and out; cytoplasm is where many reactions occur; the nucleus contains genetic material.','Plant cells also have a cellulose cell wall, a large permanent vacuole and chloroplasts in photosynthetic tissues.','Mitochondria release usable energy during aerobic respiration.']],
+ ['Photosynthesis',['Green plants use light energy to make glucose from carbon dioxide and water, releasing oxygen.','Word equation: carbon dioxide + water → glucose + oxygen. Chlorophyll absorbs light energy.','Light intensity, carbon dioxide concentration and temperature can limit the rate.']],
+ ['Genetics basics',['A gene is a section of DNA that influences a characteristic; genes are found on chromosomes.','Alleles are different forms of a gene. A dominant allele can show in a heterozygote; a recessive allele shows when no dominant allele is present.','In a simple Tt × Tt cross, genotype chances are 1 TT : 2 Tt : 1 tt.']],
+ ['Human digestion',['Digestion breaks large, insoluble food molecules into small, soluble molecules for absorption.','Amylase breaks starch into sugars, protease breaks proteins into amino acids, and lipase breaks fats into fatty acids and glycerol.','Most absorption takes place in the small intestine, whose villi provide a large surface area.']],
+ ['Respiration',['Respiration releases energy from glucose in cells; it is not the same as breathing.','Aerobic respiration uses oxygen: glucose + oxygen → carbon dioxide + water + energy.','Anaerobic respiration releases less energy; in human muscles it can produce lactic acid.']],
+ ['Transport in plants',['Xylem carries water and mineral salts from roots upward and also supports the plant.','Phloem transports dissolved sugars between sources and sinks; movement is called translocation.','Transpiration is water loss from leaves, mainly through stomata, and helps draw water up the xylem.']],
+ ['Ecology and food chains',['A food chain shows energy transfer as one organism eats another; arrows point from food to consumer.','Producers make organic food, usually by photosynthesis; consumers obtain energy by feeding.','Energy is lost at each trophic level through respiration, heat, waste and uneaten parts.']],
+ ['Variation and natural selection',['Variation means differences between individuals of a species; it can be inherited, environmental, or both.','Individuals with inherited features that improve survival and reproduction are more likely to pass those alleles on.','Across generations, advantageous alleles may become more common in a population.']]
+ ]},
+ econ:{name:'Economics',cards:[
+ ['Demand and supply',['Demand is the quantity consumers are willing and able to buy at different prices over a period.','Usually, a higher price lowers quantity demanded, other things equal; a change in price causes movement along the demand curve.','Supply is the quantity producers offer for sale. A higher price usually increases quantity supplied, other things equal.']],
+ ['Market equilibrium',['Equilibrium price occurs where quantity demanded equals quantity supplied.','A shortage occurs when quantity demanded exceeds supply, putting upward pressure on price. A surplus can put downward pressure on price.','Changes in income, tastes, costs or technology can shift demand or supply curves.']],
+ ['Inflation',['Inflation is a sustained rise in the general price level, not simply one item becoming more expensive.','It reduces the purchasing power of money when incomes do not rise as quickly.','Possible causes include rising aggregate demand or higher production costs; a consumer price index tracks a basket of prices.']],
+ ['National income',['National income measures the value of a country’s production or income over a period.','GDP is the value of final goods and services produced within a country in a period; avoid counting intermediate goods twice.','Real GDP adjusts for price-level changes, making comparisons over time more meaningful than nominal GDP alone.']],
+ ['Opportunity cost',['Scarcity means resources are limited while wants are many, so choices must be made.','Opportunity cost is the value of the next best alternative forgone when a choice is made.','If a student spends an evening working instead of studying, the study time is part of the opportunity cost.']],
+ ['Production and factors',['The main factors of production are land, labour, capital and enterprise.','Their typical rewards are rent, wages, interest and profit respectively.','Productivity measures output per unit of input; training and better tools may raise labour productivity.']],
+ ['Unemployment',['Unemployment describes people able and willing to work who are seeking work but cannot find it.','Frictional unemployment occurs between jobs; structural unemployment can result from changing skills or industries.','Unemployment can reduce household income and output, while increasing pressure on public support.']],
+ ['Money and banking',['Money serves as a medium of exchange, a unit of account and a store of value.','Commercial banks accept deposits and provide loans and payment services.','A central bank manages monetary policy and may influence interest rates, credit and the money supply.']]
+ ]},
+ eng:{name:'English',cards:[
+ ['Essay structure',['Plan your response around the exact prompt, audience and purpose before writing.','Use an introduction that establishes the topic, focused paragraphs with one main point each, and a conclusion that follows from your argument.','Support claims with relevant examples and link paragraphs so the ideas flow.']],
+ ['Comprehension technique',['Read the passage once for its main idea, then read the questions and return to the relevant lines.','Answer in your own words when asked, but keep the meaning faithful to the passage.','Use evidence from the text, respect the requested number of points, and avoid adding unsupported opinions.']],
+ ['Common grammar errors',['Keep subject and verb in agreement: “The list of items is long,” not “are long.”','Use the correct tense consistently and make pronouns clearly refer to the right nouns.','Distinguish “their” (belonging to them), “there” (place) and “they’re” (they are).']],
+ ['Parts of speech',['A noun names a person, place, thing or idea; a verb expresses action or a state.','An adjective describes a noun, while an adverb often modifies a verb, adjective or another adverb.','A preposition shows relationships such as place or time; a conjunction joins words or clauses.']],
+ ['Tenses and consistency',['Tense locates an action in time: “she writes,” “she wrote,” “she will write.”','Keep the time frame consistent unless the meaning requires a change.','Use present perfect for a past action connected to now, such as “They have finished the work.”']],
+ ['Punctuation and sentence clarity',['A full stop ends a complete statement; a question mark ends a direct question.','Use commas to separate items or mark some introductory phrases, but do not join two full sentences with only a comma.','Apostrophes show possession or contractions: “the student’s book,” “it’s” for “it is.”']],
+ ['Summary writing',['Identify the central points and remove examples, repetition and minor details.','Use concise sentences in your own words and preserve the original meaning.','Follow the word limit and do not add your personal opinion unless the task asks for it.']],
+ ['Figures of speech',['A simile compares using “like” or “as”; a metaphor describes one thing as another.','Personification gives human qualities to non-human things; alliteration repeats initial consonant sounds.','Explain the effect in context rather than only naming the device.']]
+  ]},
+ rel:{name:'Religion',cards:[
+ ['Religious traditions in Nigeria',['WAEC/JAMB Religious Studies may examine Christian Religious Studies, Islamic Religious Studies and African Traditional Religion.','Study each tradition on its own terms, noting beliefs, texts, worship and ethical teachings.','Practices and interpretations can differ among communities and denominations; describe the tradition respectfully and avoid treating one example as universal.']],
+ ['Islamic Studies: articles of faith',['The six articles commonly taught are belief in Allah, angels, revealed books, prophets, the Last Day, and divine decree (al-Qadar).','They provide a framework for Muslim belief and are distinct from the five pillars, which describe key acts of worship.','In exam answers, define the belief clearly and give a relevant example without confusing it with a pillar.']],
+ ['Islamic Studies: five pillars',['The five pillars are Shahadah (testimony of faith), Salat (prayer), Zakat (obligatory almsgiving), Sawm (fasting in Ramadan) and Hajj (pilgrimage for those able).','They structure worship and community responsibility in Islam.','Questions may ask for the meaning, practice or significance of each pillar.']],
+ ['Islamic Studies: prophets',['Islam teaches that Allah sent prophets to guide people; the Qur’an names several, including Nuh (Noah), Ibrahim (Abraham), Musa (Moses), Isa (Jesus) and Muhammad.','Muslims regard Muhammad as the final prophet; Isa is honoured as a prophet and Messiah, not regarded as divine in Islamic belief.','When answering, identify the source or tradition being discussed and state the prophet’s role accurately.']],
+ ['Christian Religious Studies: Bible narratives',['Major narratives often studied include creation, the call of Abraham, the Exodus, the ministry of Jesus, his death and resurrection, and the growth of the early church.','For a narrative question, identify the setting, key events, people involved and the lesson the syllabus expects.','Use the biblical account as the basis for the answer and distinguish the narrative from later interpretation.']],
+ ['Christian Religious Studies: parables',['A parable is a short story used to teach a spiritual or moral lesson.','Examples include the Good Samaritan, the Prodigal Son and the Sower.','Explain both the story’s central meaning and its relevance to the question; avoid adding details not in the text.']],
+ ['Christian Religious Studies: early church',['Acts describes the early Christian community, the coming of the Holy Spirit at Pentecost, shared fellowship and the spread of the message.','Peter and Paul are prominent in accounts of preaching and church growth.','Exam answers can connect events to themes such as witness, unity, service and the challenges faced by early believers.']],
+ ['African Traditional Religion: beliefs and practice',['African Traditional Religion is diverse across peoples and communities; beliefs and customs are not identical everywhere.','Many traditions recognise a Supreme Being, spiritual beings, ancestors and moral duties within family and community life.','Describe the specific people or practice named in a question rather than presenting one community’s custom as universal.']],
+ ['African Traditional Religion: divination and ancestors',['Divination is a culturally specific practice used in some communities to seek guidance or interpret a situation; methods and meanings vary.','In some traditions, ancestors are remembered as part of family and community identity, with beliefs about their continuing significance differing by community.','For exam responses, describe the stated practice neutrally and distinguish it from generalisations or outside judgement.']],
+ ['African Traditional Religion: rites and community',['Rites may mark birth, naming, initiation, marriage, harvest or death, helping communities express identity and shared responsibilities.','Rituals, symbols and leaders vary among communities, and not every community observes the same rites.','Explain the purpose and social meaning of the example in the question, using respectful, specific language.']]
+ ]}
+};
+var QUIZ_BANK={
+ chem:[
+ {q:'An element has atomic number 11. How many protons does each atom have?',a:'11',o:['11','12','22','1'],e:'Atomic number equals the number of protons.'},
+ {q:'How many moles are in 36 g of water (Mr = 18)?',a:'2 mol',o:['2 mol','0.5 mol','18 mol','36 mol'],e:'moles = mass ÷ molar mass = 36 ÷ 18 = 2 mol.'},
+ {q:'A solution with pH 3 is best described as...',a:'acidic',o:['acidic','neutral','alkaline','a pure element'],e:'pH below 7 is acidic.'},
+ {q:'Which coefficient balances H₂ + O₂ → H₂O?',a:'2H₂ + O₂ → 2H₂O',o:['2H₂ + O₂ → 2H₂O','H₂ + O₂ → H₂O₂','H₂ + 2O₂ → H₂O','H₂ + O₂ → 2H₂O'],e:'Two water molecules require four H atoms and two O atoms, so use 2 before H₂ and H₂O.'}
+ ],
+ bio:[
+ {q:'Which cell structure controls what enters and leaves the cell?',a:'cell membrane',o:['cell membrane','cell wall','nucleus','vacuole'],e:'The cell membrane regulates movement into and out of the cell.'},
+ {q:'Which gas is released during photosynthesis?',a:'oxygen',o:['oxygen','nitrogen','carbon dioxide','hydrogen'],e:'Photosynthesis uses carbon dioxide and water to make glucose and releases oxygen.'},
+ {q:'In a Tt × Tt cross, what fraction of offspring is expected to be tt?',a:'1/4',o:['1/4','1/2','3/4','all'],e:'The possible genotypes are TT, Tt, Tt and tt, so one of four is tt.'},
+ {q:'Which vessel transports water from roots through a plant?',a:'xylem',o:['xylem','phloem','artery','stoma'],e:'Xylem carries water and mineral salts from roots upward.'}
+ ],
+ econ:[
+ {q:'If price rises and other things stay equal, what usually happens to quantity demanded?',a:'it falls',o:['it falls','it rises','it stays fixed always','supply disappears'],e:'The law of demand predicts an inverse relationship between price and quantity demanded, other things equal.'},
+ {q:'What is the next best alternative forgone called?',a:'opportunity cost',o:['opportunity cost','inflation','national income','profit'],e:'Opportunity cost is the value of the next best alternative given up.'},
+ {q:'A sustained rise in the general price level is...',a:'inflation',o:['inflation','deflation','scarcity','equilibrium'],e:'Inflation is a sustained increase in the general price level.'},
+ {q:'GDP counts the value of which output?',a:'final goods and services produced domestically',o:['final goods and services produced domestically','only imported raw materials','all intermediate sales twice','only government wages'],e:'GDP measures final production within the country during a period.'}
+ ],
+ eng:[
+ {q:'Choose the correct sentence.',a:'The list of names is ready.',o:['The list of names is ready.','The list of names are ready.','The list of names were ready.','The list of names be ready.'],e:'The subject is singular “list,” so it takes “is.”'},
+ {q:'Which is the best first step for a focused essay?',a:'plan around the prompt and audience',o:['plan around the prompt and audience','write every idea without a plan','skip the introduction and conclusion','copy a memorised passage'],e:'Planning around the prompt, audience and purpose keeps the essay relevant.'},
+ {q:'In comprehension, what should you do when asked to answer in your own words?',a:'restate the passage meaning accurately',o:['restate the passage meaning accurately','add an unrelated opinion','change the meaning','copy the whole passage'],e:'Use your own wording while preserving what the passage says.'},
+ {q:'Which word means “they are”?',a:'they’re',o:['they’re','their','there','theirs'],e:'“They’re” is the contraction of “they are.”'}
+ ],
+ rel:[
+ {q:'Which act is one of the five pillars of Islam?',a:'Zakat',o:['Zakat','Hajj al-Wada','Hijrah','Shura'],e:'Zakat, obligatory almsgiving, is one of the five pillars.'},
+ {q:'Which book contains the Acts account of Pentecost and early church growth?',a:'New Testament',o:['New Testament','Qur’an','Vedas','Torah only'],e:'Acts is a book in the New Testament and describes early Christian community and mission.'},
+ {q:'In African Traditional Religion, which statement is most accurate?',a:'beliefs and rites vary among communities',o:['beliefs and rites vary among communities','all communities have identical rites','there is no community worship','every tradition uses one method of divination'],e:'African Traditional Religion is diverse, so beliefs and rites should be described in their specific community context.'},
+ {q:'What is a parable?',a:'a short story used to teach a lesson',o:['a short story used to teach a lesson','a list of laws','a type of census','a formal prayer only'],e:'A parable is a short story used to communicate a spiritual or moral lesson.'}
+ ]
+};
+function renderStudy(subject){
+ var s=STUDY[subject];if(!s)return;
+ document.getElementById('studyTutorTitle').textContent=s.name+' AI tutor';
+ document.getElementById('studyContent').innerHTML='<h2>'+s.name+' study cards</h2><p class="hint">WAEC/JAMB topics. Tap a card to open the explanation.</p><div class="study-list">'+s.cards.map(function(c,i){return '<button class="study-card" onclick="openStudy(\''+subject+'\','+i+')"><h3>'+c[0]+'</h3><div class="rule">'+c[1][0]+'</div></button>';}).join('')+'</div><div id="studyDetail"></div>';
+}
+function openStudy(subject,index){var c=STUDY[subject].cards[index];document.getElementById('studyDetail').innerHTML='<article class="study-card-detail"><h3>'+c[0]+'</h3>'+c[1].map(function(p){return '<p>'+p+'</p>';}).join('')+'</article>';}
+function bankQ(subject){var pool=QUIZ_BANK[subject]||[],q=pool[rnd(0,pool.length-1)];return {q:q.q,a:q.a,opts:q.o.slice(),expl:q.e,subject:STUDY[subject].name};}
 // QUIZ + STREAKS
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function loadSave(){try{return JSON.parse(localStorage.getItem('ss_save')||'{}');}catch(e){return{};}}
@@ -446,8 +560,9 @@ function showStreak(){
 }
 var QZ={i:0,score:0,qs:[]};
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
-function genQ(){
- var type=rnd(0,7),q,a,opts,expl;
+function genQ(subject){
+ var allowed=subject==='math'?[0,1,2,3,4,5]:subject==='phy'?[6,7]:[0,1,2,3,4,5,6,7];
+ var type=allowed[rnd(0,allowed.length-1)],q,a,opts,expl;
  if(type===0){ // percent
   var p=rnd(1,9)*10,n=rnd(2,20)*10;
   q='What is '+p+'% of '+n+'?';
@@ -497,22 +612,27 @@ function genQ(){
 }
 function newQuiz(){
  QZ={i:0,score:0,qs:[]};
- for(var i=0;i<5;i++)QZ.qs.push(genQ());
+ var selected=document.getElementById('quizSubject').value;
+ for(var i=0;i<5;i++){
+  var sub=selected==='mixed'?['math','phy','chem','bio','econ','eng'][rnd(0,5)]:selected;
+  QZ.qs.push((sub==='chem'||sub==='bio'||sub==='econ'||sub==='eng')?bankQ(sub):genQ(sub));
+ }
  renderQ();
 }
 function renderQ(){
  var q=QZ.qs[QZ.i];
  var opts=q.opts.slice().sort(function(){return Math.random()-0.5;});
- var h='<div class="card"><div class="expr">Question '+(QZ.i+1)+' of 5</div><div class="expr" style="margin:10px 0">'+sq(q.q)+'</div>';
+ var h='<div class="card"><div class="expr">Question '+(QZ.i+1)+' of 5'+(q.subject?' · '+q.subject:'')+'</div><div class="expr" style="margin:10px 0">'+sq(q.q)+'</div>';
  opts.forEach(function(o){
-  h+='<button class="eg" style="text-align:left;margin-top:6px" onclick="answer('+o+')">'+o+'</button>';
+  h+='<button class="eg" style="text-align:left;margin-top:6px" onclick="answer(this)">'+o+'</button>';
  });
  h+='</div>';
  document.getElementById('quizArea').innerHTML=h;
 }
-function answer(v){
+function answer(button){
  var q=QZ.qs[QZ.i];
- var ok=(Math.abs(v-q.a)<0.001);
+ var v=button&&button.tagName==='BUTTON'?button.textContent:button;
+ var ok=typeof q.a==='number'?(Math.abs(Number(v)-q.a)<0.001):(String(v)===String(q.a));
  if(ok)QZ.score++;
  document.getElementById('quizArea').innerHTML='<div class="card"><div class="expr">'+(ok?'\u2705 correct!':'\u274c wrong - answer na '+q.a)+'</div><div class="rule">'+q.expl+'</div></div>'
  +'<button class="go" onclick="nextQ()">'+(QZ.i<4?'Next question':'See result')+'</button>';
