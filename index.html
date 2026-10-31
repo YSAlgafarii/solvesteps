@@ -19,8 +19,10 @@ body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:linear-grad
 h1{font-size:1.6rem;margin-bottom:2px;font-weight:800}
 h1 span{color:var(--pink)}
 .sub{color:var(--muted);font-size:.9rem;margin-bottom:16px}
-.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}
-.tabs button{min-width:0;padding:10px 5px;border:2px solid transparent;background:rgba(255,255,255,.75);color:var(--ink);border-radius:14px;font-size:.78rem;cursor:pointer;transition:transform .15s}
+.tabs{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 1px 8px;scrollbar-width:thin}
+.tabs button{flex:0 0 auto;padding:10px 13px;border:2px solid transparent;background:rgba(255,255,255,.75);color:var(--ink);border-radius:999px;font-size:.78rem;white-space:nowrap;cursor:pointer;transition:transform .15s}
+.quiz-select{max-height:44px}
+.quiz-select option{padding:8px}
 .tabs button.on{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(124,108,246,.35)}
 .study-list{display:grid;gap:10px;margin-top:12px}.study-card{width:100%;text-align:left;border:0;border-radius:16px;padding:14px;background:#fff;box-shadow:0 5px 16px rgba(29,35,64,.08);color:var(--ink);cursor:pointer}.study-card h3{color:var(--purple);margin-bottom:5px}.study-card .rule{line-height:1.5}.study-card-detail p{margin:.45rem 0;line-height:1.5}.study-card-detail{background:#fff;border-radius:16px;padding:14px;margin-top:10px}.quiz-select{margin-top:8px}
 input[type=text],input[type=number],select{width:100%;padding:15px;border-radius:14px;border:2px solid #ffd3e0;background:var(--card);color:var(--ink);font-size:1rem;margin-bottom:10px;box-shadow:0 2px 10px rgba(29,35,64,.06)}
@@ -76,6 +78,13 @@ body{padding-bottom:104px}
 <button id="tabBio" onclick="tab('bio')">Biology</button>
 <button id="tabEcon" onclick="tab('econ')">Economics</button>
 <button id="tabEng" onclick="tab('eng')">English</button>
+<button id="tabRel" onclick="tab('rel')">Religion</button>
+<button id="tabGeo" onclick="tab('geo')">Geography</button>
+<button id="tabGov" onclick="tab('gov')">Government</button>
+<button id="tabHome" onclick="tab('home')">Home Management</button>
+<button id="tabArt" onclick="tab('art')">Fine Art</button>
+<button id="tabHist" onclick="tab('hist')">History</button>
+<button id="tabLit" onclick="tab('lit')">Literature</button>
 <button id="tabQuiz" onclick="tab('quiz')">Quiz</button>
 </div>
 <div id="mathPane">
@@ -91,7 +100,7 @@ body{padding-bottom:104px}
 </div>
 <div id="quizPane" style="display:none">
 <div class="card" id="streakCard"></div>
-<label for="quizSubject">Quiz subject</label><select id="quizSubject" class="quiz-select"><option value="mixed">Mixed subjects</option><option value="math">Maths</option><option value="phy">Physics</option><option value="chem">Chemistry</option><option value="bio">Biology</option><option value="econ">Economics</option><option value="eng">English</option></select>
+<label for="quizSubject">Quiz subject</label><select id="quizSubject" class="quiz-select"><option value="mixed">Mixed subjects</option><option value="math">Maths</option><option value="phy">Physics</option><option value="chem">Chemistry</option><option value="bio">Biology</option><option value="econ">Economics</option><option value="eng">English</option><option value="rel">Religion</option><option value="geo">Geography</option><option value="gov">Government/Civic Education</option><option value="home">Home Management/Home Economics</option><option value="art">Fine Art</option><option value="hist">History</option><option value="lit">Literature-in-English</option></select>
 <button class="go" onclick="newQuiz()" style="margin-top:12px">Daily challenge + practice</button>
 <div id="quizArea"></div>
 </div>
@@ -142,11 +151,11 @@ function navSection(s){
  if(s==='profile')renderProfile();
 }
 var CUR_SUBJECT='math';
-var STUDY_SUBJECTS=['chem','bio','econ','eng'];
+var STUDY_SUBJECTS=['chem','bio','econ','eng','rel','geo','gov','home','art','hist','lit'];
 function tab(t){
  if(['math','phy'].concat(STUDY_SUBJECTS).indexOf(t)>-1)CUR_SUBJECT=t;
- var subjects=['math','phy','chem','bio','econ','eng','quiz'];
- var caps={math:'Math',phy:'Phy',chem:'Chem',bio:'Bio',econ:'Econ',eng:'Eng',quiz:'Quiz'};
+ var subjects=['math','phy'].concat(STUDY_SUBJECTS).concat(['quiz']);
+ var caps={math:'Math',phy:'Phy',chem:'Chem',bio:'Bio',econ:'Econ',eng:'Eng',rel:'Rel',geo:'Geo',gov:'Gov',home:'Home',art:'Art',hist:'Hist',lit:'Lit',quiz:'Quiz'};
  subjects.forEach(function(s){var b=document.getElementById('tab'+caps[s]);if(b)b.classList.toggle('on',t===s);});
  document.getElementById('mathPane').style.display=t==='math'?'block':'none';
  document.getElementById('phyPane').style.display=t==='phy'?'block':'none';
@@ -480,16 +489,74 @@ var STUDY={
  ['Figures of speech',['A simile compares using “like” or “as”; a metaphor describes one thing as another.','Personification gives human qualities to non-human things; alliteration repeats initial consonant sounds.','Explain the effect in context rather than only naming the device.']]
   ]},
  rel:{name:'Religion',cards:[
- ['Religious traditions in Nigeria',['WAEC/JAMB Religious Studies may examine Christian Religious Studies, Islamic Religious Studies and African Traditional Religion.','Study each tradition on its own terms, noting beliefs, texts, worship and ethical teachings.','Practices and interpretations can differ among communities and denominations; describe the tradition respectfully and avoid treating one example as universal.']],
- ['Islamic Studies: articles of faith',['The six articles commonly taught are belief in Allah, angels, revealed books, prophets, the Last Day, and divine decree (al-Qadar).','They provide a framework for Muslim belief and are distinct from the five pillars, which describe key acts of worship.','In exam answers, define the belief clearly and give a relevant example without confusing it with a pillar.']],
- ['Islamic Studies: five pillars',['The five pillars are Shahadah (testimony of faith), Salat (prayer), Zakat (obligatory almsgiving), Sawm (fasting in Ramadan) and Hajj (pilgrimage for those able).','They structure worship and community responsibility in Islam.','Questions may ask for the meaning, practice or significance of each pillar.']],
- ['Islamic Studies: prophets',['Islam teaches that Allah sent prophets to guide people; the Qur’an names several, including Nuh (Noah), Ibrahim (Abraham), Musa (Moses), Isa (Jesus) and Muhammad.','Muslims regard Muhammad as the final prophet; Isa is honoured as a prophet and Messiah, not regarded as divine in Islamic belief.','When answering, identify the source or tradition being discussed and state the prophet’s role accurately.']],
- ['Christian Religious Studies: Bible narratives',['Major narratives often studied include creation, the call of Abraham, the Exodus, the ministry of Jesus, his death and resurrection, and the growth of the early church.','For a narrative question, identify the setting, key events, people involved and the lesson the syllabus expects.','Use the biblical account as the basis for the answer and distinguish the narrative from later interpretation.']],
- ['Christian Religious Studies: parables',['A parable is a short story used to teach a spiritual or moral lesson.','Examples include the Good Samaritan, the Prodigal Son and the Sower.','Explain both the story’s central meaning and its relevance to the question; avoid adding details not in the text.']],
- ['Christian Religious Studies: early church',['Acts describes the early Christian community, the coming of the Holy Spirit at Pentecost, shared fellowship and the spread of the message.','Peter and Paul are prominent in accounts of preaching and church growth.','Exam answers can connect events to themes such as witness, unity, service and the challenges faced by early believers.']],
- ['African Traditional Religion: beliefs and practice',['African Traditional Religion is diverse across peoples and communities; beliefs and customs are not identical everywhere.','Many traditions recognise a Supreme Being, spiritual beings, ancestors and moral duties within family and community life.','Describe the specific people or practice named in a question rather than presenting one community’s custom as universal.']],
- ['African Traditional Religion: divination and ancestors',['Divination is a culturally specific practice used in some communities to seek guidance or interpret a situation; methods and meanings vary.','In some traditions, ancestors are remembered as part of family and community identity, with beliefs about their continuing significance differing by community.','For exam responses, describe the stated practice neutrally and distinguish it from generalisations or outside judgement.']],
- ['African Traditional Religion: rites and community',['Rites may mark birth, naming, initiation, marriage, harvest or death, helping communities express identity and shared responsibilities.','Rituals, symbols and leaders vary among communities, and not every community observes the same rites.','Explain the purpose and social meaning of the example in the question, using respectful, specific language.']]
+ ['Three religious traditions in Nigeria',['Study Islamic Studies, Christian Religious Studies and African Traditional Religion as distinct traditions, with their own sources, beliefs, worship and ethical teachings.','Interpretations and customs vary within traditions; explain the community or text named in the question and use neutral, respectful language.']],
+ ['Islam: articles of faith',['The six articles commonly taught are belief in Allah, angels, revealed books, prophets, the Last Day, and divine decree (al-Qadar).','These are core beliefs and are distinct from the five pillars, which describe key acts of worship.']],
+ ['Islam: five pillars and prophets',['The five pillars are Shahadah, Salat, Zakat, Sawm in Ramadan and Hajj for those able.','Key prophets named in the Qur’an include Nuh, Ibrahim, Musa, Isa and Muhammad; Muslims regard Muhammad as the final prophet.']],
+ ['Christianity: major Bible narratives',['Commonly studied narratives include creation, Abraham’s call, the Exodus, Jesus’ ministry, death and resurrection, and the early church.','For a narrative answer, set out the people and events in sequence, then connect them to the question’s lesson.']],
+ ['Christianity: parables',['Parables are short stories used to teach spiritual or moral lessons; examples include the Good Samaritan, the Prodigal Son and the Sower.','Explain the central message and its relevance, grounding details in the biblical account.']],
+ ['Christianity: the early church',['Acts describes Pentecost, fellowship among believers, preaching and the spread of the early church.','Peter and Paul feature prominently; themes include witness, service, unity and challenges faced by the community.']],
+ ['African Traditional Religion: beliefs, ancestors and divination',['Beliefs vary among African peoples; many traditions recognise a Supreme Being, spiritual beings and ancestors within a connected moral and community life.','In some communities, divination is a specific way of seeking guidance; methods and beliefs about ancestors differ, so avoid treating one practice as universal.']],
+ ['African Traditional Religion: community rites',['Rites may mark naming, initiation, marriage, harvest or death and can express identity, belonging and shared responsibilities.','Symbols, leaders and observances vary by community; explain the purpose of the particular rite named in the question.']]
+ ]},
+ geo:{name:'Geography',cards:[
+ ['Map scale and distance',['A map scale relates a map distance to ground distance, such as 1:50,000.','At 1:50,000, 1 cm on the map represents 50,000 cm, or 0.5 km, on the ground.','Convert units carefully and show the scale calculation.']],
+ ['Map symbols and direction',['Conventional signs represent features such as roads, rivers, settlements and boundaries; check the map key.','North is commonly at the top unless a compass or north arrow shows otherwise.','Grid references help locate places: read eastings before northings.']],
+ ['Contour lines and relief',['Contour lines join points of equal height above sea level.','Close contours indicate a steep slope; widely spaced contours indicate a gentle slope.','Contour patterns can reveal valleys, ridges, hills and escarpments.']],
+ ['Weather and climate',['Weather is the short-term state of the atmosphere; climate is the long-term average pattern, commonly described over decades.','Temperature, rainfall, humidity, wind and pressure are important elements.','Latitude, altitude, distance from the sea and prevailing winds influence climate.']],
+ ['Rainfall and climate graphs',['Read a climate graph by checking its labels, units, scale and time period.','Monthly rainfall is often shown with bars and temperature with a line; identify wet and dry seasons from the plotted values.','Compare months using the evidence on the graph rather than general assumptions.']],
+ ['Landforms and rivers',['Major landforms include mountains, plateaux, plains, valleys and coastal lowlands.','Rivers erode, transport and deposit material, creating features such as V-shaped valleys, floodplains and deltas.','Relief and drainage affect settlement, farming and transport.']],
+ ['Nigeria: regions and drainage',['Nigeria has varied landscapes, including coastal plains, the Niger-Benue trough, northern plains and highlands such as the Jos Plateau.','The Niger and Benue are major rivers and meet at Lokoja before flowing toward the Niger Delta.','Use map evidence to locate states, regions, rivers and neighbouring countries.']],
+ ['Nigeria: climate, people and resources',['Nigeria spans humid southern conditions and more seasonal, drier conditions farther north; rainfall generally decreases northward.','Vegetation zones include mangrove and freshwater swamp, rainforest, derived savanna, Guinea savanna and Sudan savanna.','Climate, soils, water and mineral resources influence farming, settlement and economic activity.']]
+ ]},
+ gov:{name:'Government/Civic Education',cards:[
+ ['The constitution',['A constitution is the fundamental set of rules and principles by which a state is governed.','It defines institutions and powers, sets procedures for public authority and may protect citizens’ rights.','A written constitution can be amended only through the procedures it specifies.']],
+ ['Democracy and elections',['Democracy means government in which people participate directly or through elected representatives.','Free and fair elections, political choice, rule of law and accountability are key principles.','Participation also includes informed debate, lawful advocacy and community involvement.']],
+ ['Citizenship and civic duties',['Citizenship is legal membership of a state, carrying rights and responsibilities under its laws.','Civic duties can include obeying the law, paying taxes as required, voting where eligible and respecting others’ rights.','Rights and duties should be exercised through lawful, peaceful processes.']],
+ ['Fundamental rights',['Rights protect human dignity and freedoms; examples include life, fair hearing, expression and association, subject to lawful limits.','Know the difference between a right and a responsibility, and the legal channels for addressing violations.','Constitutions and laws set out how rights are protected and any permitted restrictions.']],
+ ['The three arms of government',['The legislature makes laws and scrutinises government; the executive implements laws and policies; the judiciary interprets laws and resolves disputes.','Separation of powers distributes authority, while checks and balances help prevent its concentration.','In Nigeria, the federal legislature is the National Assembly, and courts form the judiciary.']],
+ ['Federalism in Nigeria',['Federalism divides constitutional powers between a central government and component states.','Nigeria’s federal structure includes federal, state and local levels, each with assigned responsibilities.','The constitution and legislation guide which level handles a particular function.']],
+ ['Rule of law and accountability',['Rule of law means public officials and citizens are subject to known laws applied through fair processes.','Accountability allows institutions and the public to question how power and public resources are used.','Independent courts, oversight bodies, a free press and transparent procedures can support accountability.']],
+ ['Public service and community participation',['The public service helps implement government decisions and deliver services with professionalism and impartiality.','Citizens can contribute through community meetings, lawful petitions, volunteering and public consultations.','Civic participation works best when people use reliable information and respect peaceful, legal processes.']]
+ ]},
+ home:{name:'Home Management/Home Economics',cards:[
+ ['Food groups and balanced meals',['A balanced meal provides suitable amounts of energy-giving, body-building and protective foods.','Staples such as grains supply energy; beans, fish and eggs provide protein; fruits and vegetables provide vitamins, minerals and fibre.','Needs vary with age, health, activity and availability; variety helps improve nutrient coverage.']],
+ ['Nutrients and their roles',['Carbohydrates and fats are energy sources; proteins support growth and repair.','Vitamins and minerals help regulate body processes, while water and fibre support normal body function.','A varied diet is more reliable than depending heavily on one food group.']],
+ ['Food hygiene and safety',['Wash hands, utensils and surfaces; keep raw foods separate from cooked foods to reduce contamination.','Cook food thoroughly, store perishables safely and use clean water.','Safe handling protects the household from food-borne illness.']],
+ ['Meal planning and preparation',['Plan meals around household needs, budget, available foods, nutrition and time.','A shopping list and seasonal choices can reduce waste and control spending.','Choose cooking methods that suit the food and preserve quality, such as steaming or simmering where appropriate.']],
+ ['Textiles and clothing care',['Fibres may be natural, such as cotton and wool, or manufactured, such as polyester.','Read care labels for washing temperature, drying and ironing instructions.','Sort clothes by colour and fabric type; treat stains promptly using a method safe for the material.']],
+ ['Clothing choice and garment construction',['Clothing choices can reflect climate, activity, comfort, culture and cost.','Basic garment construction includes taking measurements, selecting a pattern, cutting fabric, joining seams and finishing edges.','Accurate measuring and careful pressing help improve fit and appearance.']],
+ ['Family resources and budgeting',['Family resources include money, time, energy, skills and household goods.','A budget plans expected income against needs, savings and spending priorities.','Compare prices, distinguish needs from wants and review the budget when circumstances change.']],
+ ['Time, energy and household management',['Set priorities, group similar tasks and plan a realistic sequence to use time well.','Safe tools, good posture and an organised workspace can reduce effort and accidents.','Shared responsibilities and clear routines support household wellbeing.']]
+ ]},
+ art:{name:'Fine Art',cards:[
+ ['Elements of design: line, shape and form',['Line can describe direction, edge, movement or texture; shape is two-dimensional and form has three dimensions.','Artists combine geometric or organic shapes to organise a composition.','Observe how line and form guide attention and create structure.']],
+ ['Elements of design: colour and value',['Colour is described by hue, value (lightness or darkness) and intensity.','Primary colours are starting points for mixing; complementary colours sit opposite each other on a colour wheel.','Value contrast can create emphasis, depth and readable forms.']],
+ ['Texture and space',['Texture is the actual or implied surface quality of an artwork.','Space may be positive (occupied by forms) or negative (the area around them).','Overlap, size change and perspective can suggest depth on a flat surface.']],
+ ['Principles: balance and emphasis',['Balance concerns how visual weight is distributed; it may be symmetrical, asymmetrical or radial.','Emphasis creates a focal point through contrast, placement, scale or colour.','A clear focal point helps organise how viewers read a composition.']],
+ ['Principles: rhythm, movement and unity',['Repetition and variation can create rhythm; lines, shapes and contrast can guide visual movement.','Unity makes parts feel related, while variety adds interest.','Effective designs balance coherence with enough contrast to avoid monotony.']],
+ ['Art history: materials and periods',['Art history studies artworks in their cultural and historical settings, including materials, purposes and audiences.','Compare works by looking at subject, technique, style and context rather than relying only on dates.','Identify evidence in the artwork before making an interpretation.']],
+ ['Nigerian art: Nok and Benin traditions',['Nok terracotta sculptures are among the notable early artistic traditions of Nigeria.','Benin court art includes cast brass and ivory works associated with royal history and skilled guild production.','Discuss materials, craftsmanship and cultural context without treating distinct traditions as identical.']],
+ ['Nigerian art: contemporary practice',['Nigerian artists work across painting, sculpture, textiles, photography, graphics and mixed media.','Works may explore identity, community, history and social change using local and global influences.','Analyse composition, materials and meaning with reference to the specific work.']]
+ ]},
+ hist:{name:'History',cards:[
+ ['Early Nigerian societies and states',['Before colonial rule, the region had diverse societies and political systems, including city-states, kingdoms and empires.','Examples often studied include Ife, Benin, Oyo, Kanem-Bornu, Hausa states and the Sokoto Caliphate.','Compare their leadership, trade, culture and relations using specific evidence.']],
+ ['Trade and regional connections',['Trans-Saharan trade connected communities in the north with North Africa and beyond, exchanging goods and ideas.','Coastal trade linked communities with European merchants; the Atlantic slave trade caused profound human and social harm.','Explain change over time and distinguish different trade systems and their consequences.']],
+ ['Colonial expansion in Nigeria',['British influence grew through trade, treaties, military campaigns and administrative control during the nineteenth and early twentieth centuries.','The 1914 amalgamation joined the Northern and Southern protectorates under one colonial administration.','Examine motives, methods and effects, including local resistance and differing regional experiences.']],
+ ['Colonial administration and resistance',['Colonial rule used systems including indirect rule, which governed through selected local authorities in some areas.','Responses included negotiation, adaptation and resistance; experiences differed across communities.','Use named examples and explain both the policy and its local impact.']],
+ ['Nationalism and the independence movement',['Nationalism grew through newspapers, education, political associations, labour activity and constitutional debate.','Leaders and parties advanced different strategies and visions for self-government.','Nigeria became independent on 1 October 1960; explain the process and important milestones in context.']],
+ ['Nigeria after independence',['After independence, Nigeria experienced changes in political institutions, regional relations and national leadership.','The First Republic began in 1963; military rule and later transitions shaped the country’s political history.','Build a timeline from reliable dates and connect events to their causes and consequences.']],
+ ['Pan-Africanism',['Pan-Africanism promotes solidarity and cooperation among people of African descent and African states.','It influenced anti-colonial movements, independence campaigns and regional cooperation.','Study key thinkers and organisations in their historical context, including differing approaches and goals.']],
+ ['Historical sources and evidence',['Primary sources come from the period studied, such as letters, oral accounts, official records or artefacts; secondary sources interpret evidence later.','Check authorship, purpose, audience, date and limitations before relying on a source.','Corroborate accounts where possible and distinguish evidence from interpretation.']]
+ ]},
+ lit:{name:'Literature-in-English',cards:[
+ ['Plot and structure',['Plot is the arrangement of events in a literary work, often shaped by conflict and turning points.','Structure includes how a work is organised into acts, chapters, scenes or episodes.','Explain how an event changes the action rather than simply retelling the story.']],
+ ['Character and characterisation',['A character is a person or figure in a work; characterisation is how the writer presents them.','Look at speech, actions, thoughts, relationships and other characters’ responses.','Use brief textual evidence to support an interpretation.']],
+ ['Setting and atmosphere',['Setting covers time and place, including social or historical conditions.','Atmosphere is the mood created through details such as imagery, sound and description.','Explain how setting affects characters, conflict or the reader’s understanding.']],
+ ['Theme and motif',['A theme is a central idea explored by a work, such as power, belonging or justice.','A motif is a recurring image, object or phrase that may reinforce a theme.','State the idea clearly and support it with events or language from the text.']],
+ ['Imagery and figurative language',['A simile compares using “like” or “as”; a metaphor describes one thing as another.','Personification gives human qualities to non-human things; imagery appeals to the senses.','Explain the effect of the chosen words in context, not only the device’s name.']],
+ ['Sound devices and diction',['Alliteration repeats initial consonant sounds; assonance repeats vowel sounds; onomatopoeia echoes a sound.','Diction means word choice, which can shape tone, character and meaning.','Connect a sound or word pattern to its effect in the passage.']],
+ ['Drama: dialogue and stagecraft',['Drama is written for performance; dialogue reveals character, conflict and relationships.','Stage directions, entrances, exits, setting and props guide performance and audience understanding.','Discuss how a scene builds tension or advances the plot.']],
+ ['Poetry: speaker, tone and form',['The speaker is the voice in a poem and is not automatically the poet.','Tone is the speaker’s attitude; form includes stanza pattern, rhythm and rhyme.','Support claims about tone or form with specific words and sound or structural evidence.']]
  ]}
 };
 var QUIZ_BANK={
@@ -522,6 +589,42 @@ var QUIZ_BANK={
  {q:'Which book contains the Acts account of Pentecost and early church growth?',a:'New Testament',o:['New Testament','Qur’an','Vedas','Torah only'],e:'Acts is a book in the New Testament and describes early Christian community and mission.'},
  {q:'In African Traditional Religion, which statement is most accurate?',a:'beliefs and rites vary among communities',o:['beliefs and rites vary among communities','all communities have identical rites','there is no community worship','every tradition uses one method of divination'],e:'African Traditional Religion is diverse, so beliefs and rites should be described in their specific community context.'},
  {q:'What is a parable?',a:'a short story used to teach a lesson',o:['a short story used to teach a lesson','a list of laws','a type of census','a formal prayer only'],e:'A parable is a short story used to communicate a spiritual or moral lesson.'}
+ ],
+ geo:[
+ {q:'On a 1:50,000 map, how far on the ground does 2 cm represent?',a:'1 km',o:['1 km','100 m','10 km','500 m'],e:'2 cm × 50,000 = 100,000 cm, which is 1 km.'},
+ {q:'What do closely spaced contour lines usually show?',a:'a steep slope',o:['a steep slope','a gentle slope','flat sea','a wide river'],e:'Close contour spacing indicates a rapid change in height over a short distance.'},
+ {q:'Which two major rivers meet at Lokoja?',a:'Niger and Benue',o:['Niger and Benue','Niger and Cross','Benue and Kaduna','Osun and Ogun'],e:'The Niger and Benue meet at Lokoja.'},
+ {q:'Climate describes the atmosphere over...',a:'a long period',o:['a long period','one afternoon only','one storm only','one hour'],e:'Climate is the long-term average pattern of weather.'}
+ ],
+ gov:[
+ {q:'Which arm of government interprets laws?',a:'judiciary',o:['judiciary','legislature','executive','civil service'],e:'The judiciary interprets laws and resolves legal disputes.'},
+ {q:'What is the primary role of a constitution?',a:'to set the fundamental rules of government',o:['to set the fundamental rules of government','to conduct every election','to replace all courts','to collect only local taxes'],e:'A constitution establishes the basic rules, institutions and powers of government.'},
+ {q:'In a democracy, citizens commonly choose representatives through...',a:'elections',o:['elections','inheritance only','random selection only','military appointment'],e:'Elections allow eligible citizens to choose representatives.'},
+ {q:'Which is a civic responsibility?',a:'obeying the law',o:['obeying the law','ignoring court decisions','denying others their rights','damaging public property'],e:'Respecting and obeying the law is a civic responsibility.'}
+ ],
+ home:[
+ {q:'Which nutrient is especially important for growth and repair?',a:'protein',o:['protein','water only','fibre only','salt'],e:'Protein supports growth and repair of body tissues.'},
+ {q:'What is a practical first step in planning household spending?',a:'prepare a budget',o:['prepare a budget','buy without comparing needs','spend all income immediately','avoid recording expenses'],e:'A budget compares expected income with planned needs and spending.'},
+ {q:'Why keep raw meat separate from ready-to-eat food?',a:'to reduce cross-contamination',o:['to reduce cross-contamination','to improve garment fit','to increase cooking time','to change food colour'],e:'Separating raw and cooked foods helps prevent transfer of harmful microbes.'},
+ {q:'Which label should guide washing and ironing a garment?',a:'the care label',o:['the care label','the price tag only','the shop receipt','the size alone'],e:'Care labels give fabric-specific washing, drying and ironing guidance.'}
+ ],
+ art:[
+ {q:'Which design element is three-dimensional?',a:'form',o:['form','line','shape','value'],e:'Form has three dimensions, while shape is two-dimensional.'},
+ {q:'What does visual emphasis create in a composition?',a:'a focal point',o:['a focal point','a map scale','a timeline','a sound pattern'],e:'Emphasis draws attention to a focal point.'},
+ {q:'Nok works are especially known for sculptures made from...',a:'terracotta',o:['terracotta','glass only','paper only','steel wire'],e:'Nok is noted for terracotta sculpture.'},
+ {q:'Which principle describes how visual weight is distributed?',a:'balance',o:['balance','texture','hue','contour'],e:'Balance concerns the distribution of visual weight in an artwork.'}
+ ],
+ hist:[
+ {q:'In what year did Nigeria become independent?',a:'1960',o:['1960','1914','1963','1970'],e:'Nigeria became independent on 1 October 1960.'},
+ {q:'What did the 1914 amalgamation join?',a:'Northern and Southern Nigeria',o:['Northern and Southern Nigeria','Nigeria and Ghana','Lagos and Cameroon','Benin and Oyo'],e:'The 1914 amalgamation joined the Northern and Southern protectorates.'},
+ {q:'Pan-Africanism mainly promotes...',a:'solidarity among people of African descent and African states',o:['solidarity among people of African descent and African states','colonial rule','separation of all African communities','one local language only'],e:'Pan-Africanism supports solidarity and cooperation among people of African descent and African states.'},
+ {q:'A source created during the period being studied is usually called...',a:'a primary source',o:['a primary source','a fictional source','a later summary','a secondary source'],e:'A primary source originates from the period or event being studied.'}
+ ],
+ lit:[
+ {q:'Who is the voice speaking in a poem?',a:'the speaker',o:['the speaker','the publisher','the audience','the stage manager'],e:'The speaker is the voice in the poem and is not necessarily the poet.'},
+ {q:'A comparison using “like” or “as” is a...',a:'simile',o:['simile','metaphor','plot','motif'],e:'A simile makes a comparison using “like” or “as”.'},
+ {q:'What is a central idea explored by a literary work called?',a:'a theme',o:['a theme','a stage direction','a rhyme scheme','a setting'],e:'A theme is a central idea or concern developed in a work.'},
+ {q:'Which device repeats initial consonant sounds?',a:'alliteration',o:['alliteration','assonance','personification','irony'],e:'Alliteration repeats initial consonant sounds in nearby words.'}
  ]
 };
 function renderStudy(subject){
@@ -614,8 +717,8 @@ function newQuiz(){
  QZ={i:0,score:0,qs:[]};
  var selected=document.getElementById('quizSubject').value;
  for(var i=0;i<5;i++){
-  var sub=selected==='mixed'?['math','phy','chem','bio','econ','eng'][rnd(0,5)]:selected;
-  QZ.qs.push((sub==='chem'||sub==='bio'||sub==='econ'||sub==='eng')?bankQ(sub):genQ(sub));
+  var sub=selected==='mixed'?['math','phy','chem','bio','econ','eng','rel','geo','gov','home','art','hist','lit'][rnd(0,12)]:selected;
+  QZ.qs.push(QUIZ_BANK[sub]?bankQ(sub):genQ(sub));
  }
  renderQ();
 }
