@@ -167,21 +167,29 @@ function tab(t){
 function eg(){document.getElementById('mIn').value='(6y + x)(6y - x)';solveMath();}
 function sq(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\^2/g,'<sup>2</sup>');}
 function tutorMarkup(s){
- var text=String(s||'')
-  .replace(/\\\[|\\\]/g,'').replace(/\\\(|\\\)/g,'')
-  .replace(/\\text\s*\{([^{}]*)\}/g,'$1')
-  .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,'($1) ÷ ($2)')
-  .replace(/\\sqrt\s*\{([^{}]*)\}/g,'√($1)')
-  .replace(/\\times|\\cdot/g,'×').replace(/\\div/g,'÷').replace(/\\pi/g,'π')
-  .replace(/\\(?:,|;|!|quad|qquad)/g,' ')
-  .replace(/\\(?:mathrm|mathbf|operatorname)\s*\{([^{}]*)\}/g,'$1')
+ // Convert common tutor markup into readable text before HTML-escaping it.
+ var text=String(s||'');
+ // Reduce nested fractions from the inside out before cleaning the surrounding LaTeX.
+ for(var i=0;i<6&&/\\(?:dfrac|tfrac|frac)\s*\{/.test(text);i++)text=text.replace(/\\(?:dfrac|tfrac|frac)\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,'($1) ÷ ($2)');
+ text=text
+  .replace(/\\\[|\\\]|\\\(|\\\)/g,'')
+  .replace(/\\(?:begin|end)\s*\{(?:aligned|align\*?|array|cases|gathered)\}(?:\s*\{[^{}]*\})?/g,' ')
+  .replace(/\\(?:left|right)\b/g,'')
+  .replace(/\\(?:text|mathrm|mathbf|operatorname|boxed)\s*\{([^{}]*)\}/g,'$1')
+  .replace(/\\(?:dfrac|tfrac|frac)\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,'($1) ÷ ($2)')
+  .replace(/\\sqrt(?:\s*\[([^\]]+)\])?\s*\{([^{}]*)\}/g,function(_,degree,inside){return degree?'root '+degree+' of ('+inside+')':'√('+inside+')';})
+  .replace(/\\(?:times|cdot)/g,'×').replace(/\\div/g,'÷').replace(/\\pi/g,'π')
+  .replace(/\\(?:leq?|geq?|neq|approx|pm|infty|rightarrow|to|sum|cdots|ldots|%)/g,function(cmd){var map={'\\le':'≤','\\leq':'≤','\\ge':'≥','\\geq':'≥','\\neq':'≠','\\approx':'≈','\\pm':'±','\\infty':'∞','\\rightarrow':'→','\\to':'→','\\sum':'Σ','\\cdots':'…','\\ldots':'…','\\%':'%'};return map[cmd]||' ';})
+  .replace(/\\(?:,|;|!|quad|qquad|enspace|displaystyle)/g,' ')
   .replace(/\\[a-zA-Z]+/g,'')
   .replace(/\$\$?/g,'')
+  .replace(/[{}]/g,'')
+  .replace(/\\/g,' ')
   .replace(/\*\*(.*?)\*\*/g,'$1').replace(/(^|[^*])\*([^*]+)\*/g,'$1$2')
   .replace(/^\s{0,3}#{1,6}\s*/gm,'').replace(/^\s*[-*+]\s+/gm,'• ')
   .replace(/\s+([,.;!?])/g,'$1')
   .replace(/\s*([=×÷+−])\s*/g,' $1 ')
-  .replace(/ {2,}/g,' ');
+  .replace(/[ \t]{2,}/g,' ');
  return sq(text);
 }
 function triangleNeedsMeasurements(q){
