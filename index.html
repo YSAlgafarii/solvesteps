@@ -262,19 +262,26 @@ var studyName=STUDY[CUR_SUBJECT].name;
 }
 // ---- AI tutor fallback (free endpoint, no key in page) ----
 var AI_BUSY=false,AI_CONTEXT_NOTE='';
+function normalizeTutorSteps(text){
+ return String(text||'').replace(/\r\n?/g,'\n').trim()
+  .replace(/([.;]\s+|\n\s*)(\([a-h]\)|[a-h][.)])\s+/gi,'\n\n$2 ')
+  .replace(/\s+(?=(?:relevant rule|equation|substitute|working|solve|final answer|check)\s*:)/gi,'\n')
+  .replace(/\n{3,}/g,'\n\n');
+}
 function aiAnswer(q){
   if(!q||AI_BUSY)return;
   AI_BUSY=true;
   var contextNote=AI_CONTEXT_NOTE;AI_CONTEXT_NOTE='';
   document.getElementById('out').innerHTML='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'thinking... AI dey solve am</div>';
-  var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school students (WAEC/JAMB level), including learners who are new to algebra. Explain in very simple English with a touch of Nigerian flavour. For equations, use small numbered steps and do only ONE operation in each step. Write the new equation after every operation. Say in plain words why that operation helps, such as “subtract 5 from both sides so the +5 is removed from the side with x.” Explain that doing the same thing to both sides keeps the equation balanced. Do not skip arithmetic, use abrupt jumps, or rely on jargon like isolate, transpose, coefficient, or discriminant without explaining it. End with a simple check by putting the answer back into the original equation when possible. For shape questions, first check whether the given measurements are sufficient. If they are missing or the question is garbled, say exactly what is missing and ask for it; never invent values or present an example as the answer. Write formulas in plain text using ×, ÷, √ and clear parentheses. Do not use Markdown or LaTeX markers such as **, $, \\[ \\], \\( \\), \\frac, or \\text. Keep the explanation short and clearly mark the answer.';
-  fetch('https://text.pollinations.ai/'+encodeURIComponent(q+' (answer with clear steps, short)')+'?system='+encodeURIComponent(sys))
+  var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school learners, including beginners. Use short, plain English. Solve the exact question given. Never guess a missing number, unit, rule, diagram label, or shape. Treat OCR text as possibly garbled: use only clear facts; if an important fact is unclear, say what you can read, what is uncertain, and ask for a clearer image or correction instead of guessing. For geometry, name the rule only when the question or visible facts support it. Do not decide a shape category from a blurry outline alone. If the shape could be more than one type, state the ambiguity and show what detail is needed. For every calculation, use this order with separate lines: Relevant rule: name the rule and briefly say why it applies. Equation: write the equation using the question values or unknowns. Substitute: put the given values into the equation. Working: simplify one small step per line, showing each new equation and the arithmetic. Solve: show the operation that gives the unknown. Final answer: state the result clearly with units when known. Check: verify the result when practical. Do not combine steps or jump over arithmetic. For a question with lettered parts such as (a), (b), (c), solve each part separately under its own label, and repeat the full rule, equation, substitution, working, solve, and final answer for each part. Do not mix labels, reuse assumptions from another part, or answer a part whose facts are missing. If a question is conceptual rather than a calculation, answer directly in a few clear sentences. Use plain text with ×, ÷, √ and parentheses. Do not use Markdown or LaTeX markers such as **, $, \\[ \\], \\( \\), \\frac, or \\text. Keep it concise but never omit a needed step.';
+  fetch('https://text.pollinations.ai/'+encodeURIComponent(q+' (follow the required step order exactly; solve lettered parts separately)')+'?system='+encodeURIComponent(sys))
    .then(function(r){return r.text();})
    .then(function(t){
      AI_BUSY=false;
      if(!t||t.length<3)throw new Error('empty');
+     var displayText=normalizeTutorSteps(t);
      var h='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'<div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
-+ '<div class="rule" style="white-space:pre-wrap">'+tutorMarkup(t)+'</div></div>';
++ '<div class="rule" style="white-space:pre-wrap">'+tutorMarkup(displayText)+'</div></div>';
      document.getElementById('out').innerHTML=h;
      noteSolved();
      addShareControls(q,t.replace(/\s+/g,' ').slice(0,180));
