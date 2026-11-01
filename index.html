@@ -166,6 +166,37 @@ function tab(t){
 }
 function eg(){document.getElementById('mIn').value='(6y + x)(6y - x)';solveMath();}
 function sq(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\^2/g,'<sup>2</sup>');}
+function tutorMarkup(s){
+ var text=String(s||'')
+  .replace(/\\\[|\\\]/g,'').replace(/\\\(|\\\)/g,'')
+  .replace(/\\text\s*\{([^{}]*)\}/g,'$1')
+  .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,'($1) ÷ ($2)')
+  .replace(/\\sqrt\s*\{([^{}]*)\}/g,'√($1)')
+  .replace(/\\times|\\cdot/g,'×').replace(/\\div/g,'÷').replace(/\\pi/g,'π')
+  .replace(/\\(?:,|;|!|quad|qquad)/g,' ')
+  .replace(/\\(?:mathrm|mathbf|operatorname)\s*\{([^{}]*)\}/g,'$1')
+  .replace(/\\[a-zA-Z]+/g,'')
+  .replace(/\$\$?/g,'')
+  .replace(/\*\*(.*?)\*\*/g,'$1').replace(/(^|[^*])\*([^*]+)\*/g,'$1$2')
+  .replace(/^\s{0,3}#{1,6}\s*/gm,'').replace(/^\s*[-*+]\s+/gm,'• ')
+  .replace(/\s+([,.;!?])/g,'$1')
+  .replace(/\s*([=×÷+−])\s*/g,' $1 ')
+  .replace(/ {2,}/g,' ');
+ return sq(text);
+}
+function triangleNeedsMeasurements(q){
+ var text=String(q||'').toLowerCase();
+ if(!/\btriangle\b/.test(text)||!/(area|find|calculate|work out)/.test(text))return false;
+ var hasBase=/\bbase\s*(?:=|:|is)?\s*\d+(?:\.\d+)?\s*(?:cm|mm|m)?\b/.test(text);
+ var hasHeight=/\b(?:height|altitude)\s*(?:=|:|is)?\s*\d+(?:\.\d+)?\s*(?:cm|mm|m)?\b/.test(text);
+ var sideLabels=(text.match(/\b(?:side\s*)?[abc]\s*(?:=|:|is)\s*\d+(?:\.\d+)?/g)||[]).length;
+ return !(hasBase&&hasHeight)&&sideLabels<3;
+}
+function showMissingTriangleInfo(q){
+ AI_BUSY=false;
+ var answer='I can help with the triangle area, but the question image/text looks incomplete and does not show the measurements I need.\n\nBase means the side you choose at the bottom. Height means the straight-up distance from that base to the opposite corner (not the sloping side).\n\nFormula: Area = (base × height) ÷ 2.\n\nPlease send the base and the perpendicular height, with their units, or a clearer photo. I will work it out one small step at a time.';
+ document.getElementById('out').innerHTML='<div class="card"><div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">question needs more information</div></div></div><div class="rule" style="white-space:pre-wrap">'+tutorMarkup(answer)+'</div></div>';
+}
 function solveShareLink(question){return 'https://ysalgafarii.github.io/solvesteps/?q='+encodeURIComponent(question);}
 function sharePayload(question,summary){return 'SolveSteps\nQuestion: '+question+'\nSolution: '+summary+'\nSolve this: '+solveShareLink(question);}
 function copySolveLink(link){
@@ -208,6 +239,7 @@ var studyName=STUDY[CUR_SUBJECT].name;
   AI_CONTEXT_NOTE=studyName+': full step-solver support is for Maths and Physics. Answered by the AI tutor.';
   aiAnswer(question);return;
  }
+ if(triangleNeedsMeasurements(question)){showMissingTriangleInfo(question);return;}
  try{
   var ex=tryExplain(document.getElementById('mIn').value);if(ex){document.getElementById('out').innerHTML=ex;noteSolved();var explText=document.getElementById('out').textContent.trim();addShareControls(document.getElementById('mIn').value,explText.slice(0,180));return;}
   var ph=phyFromText(document.getElementById('mIn').value);
@@ -226,14 +258,14 @@ function aiAnswer(q){
   AI_BUSY=true;
   var contextNote=AI_CONTEXT_NOTE;AI_CONTEXT_NOTE='';
   document.getElementById('out').innerHTML='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'thinking... AI dey solve am</div>';
-  var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school students (WAEC/JAMB level). Solve or explain the question with clear numbered steps. Use simple English with a touch of Nigerian flavour. Keep it under 150 words. End with the final answer clearly.';
+  var sys='You are SolveSteps, a friendly Nigerian study tutor for secondary school students (WAEC/JAMB level), including learners who are new to algebra. Explain in very simple English with a touch of Nigerian flavour. For equations, use small numbered steps and do only ONE operation in each step. Write the new equation after every operation. Say in plain words why that operation helps, such as “subtract 5 from both sides so the +5 is removed from the side with x.” Explain that doing the same thing to both sides keeps the equation balanced. Do not skip arithmetic, use abrupt jumps, or rely on jargon like isolate, transpose, coefficient, or discriminant without explaining it. End with a simple check by putting the answer back into the original equation when possible. For shape questions, first check whether the given measurements are sufficient. If they are missing or the question is garbled, say exactly what is missing and ask for it; never invent values or present an example as the answer. Write formulas in plain text using ×, ÷, √ and clear parentheses. Do not use Markdown or LaTeX markers such as **, $, \\[ \\], \\( \\), \\frac, or \\text. Keep the explanation short and clearly mark the answer.';
   fetch('https://text.pollinations.ai/'+encodeURIComponent(q+' (answer with clear steps, short)')+'?system='+encodeURIComponent(sys))
    .then(function(r){return r.text();})
    .then(function(t){
      AI_BUSY=false;
      if(!t||t.length<3)throw new Error('empty');
      var h='<div class="card">'+(contextNote?'<div class="rule">'+contextNote+'</div>':'')+'<div class="step"><div class="n">AI</div><div><div class="expr">'+sq(q)+'</div><div class="rule">answered by AI tutor</div></div></div>'
-      +'<div class="rule" style="white-space:pre-wrap">'+sq(t)+'</div></div>';
++ '<div class="rule" style="white-space:pre-wrap">'+tutorMarkup(t)+'</div></div>';
      document.getElementById('out').innerHTML=h;
      noteSolved();
      addShareControls(q,t.replace(/\s+/g,' ').slice(0,180));
@@ -317,15 +349,70 @@ function expand(raw){
 }
 function coef(v){return v===1?'':v===-1?'-':v;}
 function showP(v){return v<0?' - '+Math.abs(v):' + '+v;}
+function linearParts(expr){
+ var out={x:0,n:0};
+ terms(expr).forEach(function(t){
+  var m=t.match(/^(-?\d*\.?\d*)(x)$/);
+  if(m){var k=m[1]===''?1:m[1]==='-'?-1:parseFloat(m[1]);out.x+=k;}
+  else if(!isNaN(parseFloat(t)))out.n+=parseFloat(t);else throw 0;
+ });
+ return out;
+}
+function linearText(x,n){
+ var out='';
+ if(x)out+=(x===1?'':x===-1?'-':x)+'x';
+ if(n)out+=(n>0?(out?' + ':''):' - ')+Math.abs(n);
+ return out||'0';
+}
+function numberText(n){return String(Number(n.toFixed(8)));}
+function evalPoly(expr,x){
+ var total=0;
+ terms(expr).forEach(function(t){
+  var m=t.match(/^(-?\d*\.?\d*)(x(\^2)?)$/);
+  if(m){var k=(m[1]===''||m[1]==='-')?(m[1]==='-'?-1:1):parseFloat(m[1]);total+=k*(m[3]?x*x:x);}
+  else total+=parseFloat(t);
+ });
+ return total;
+}
 function solveEq(raw){
  var parts=raw.split('=');if(parts.length!==2)throw 0;
  var L=parts[0],R=parts[1];
- var S=[[raw,'start: the equation']];
+ var S=[[raw,'start here. The equals sign means both sides have the same value.']];
+ // Teach one-step linear equations separately. Each step changes both sides equally.
+ try{
+  var left=linearParts(L),right=linearParts(R);
+  if(left.x!==right.x){
+   var xcoef=left.x-right.x,constant=right.n-left.n;
+   var curLeft={x:left.x,n:left.n},curRight={x:right.x,n:right.n};
+   if(curLeft.n){
+    var leftNumberAction=left.n<0?'add '+numberText(Math.abs(left.n)):'subtract '+numberText(left.n);
+    curRight.n-=curLeft.n;curLeft.n=0;
+    S.push([linearText(curLeft.x,curLeft.n)+' = '+linearText(curRight.x,curRight.n),leftNumberAction+' from both sides. This removes the number on the left and keeps both sides equal.']);
+   }
+   if(curRight.x){
+    var rightXAction=right.x<0?'add '+numberText(Math.abs(right.x))+'x':'subtract '+numberText(right.x)+'x';
+    curLeft.x-=curRight.x;curRight.x=0;
+    S.push([linearText(curLeft.x,curLeft.n)+' = '+linearText(curRight.x,curRight.n),rightXAction+' to both sides. This brings all the x terms to the left.']);
+   }
+   if(xcoef===0)throw 0;
+   var answer=constant/xcoef;
+   if(xcoef!==1){
+    var combinedEquation=linearText(xcoef,0)+' = '+numberText(constant);
+    if(S[S.length-1][0]!==combinedEquation)S.push([combinedEquation,'combine the x terms and numbers on each side.']);
+    S.push([numberText(xcoef)+'x ÷ '+numberText(xcoef)+' = '+numberText(constant)+' ÷ '+numberText(xcoef),'divide both sides by '+numberText(xcoef)+'. This undoes multiplying x by '+numberText(xcoef)+'.']);
+    S.push(['x = '+numberText(answer),'finish the division: '+numberText(constant)+' ÷ '+numberText(xcoef)+' = '+numberText(answer)+'.']);
+   }else S.push(['x = '+numberText(constant),'x is already by itself.']);
+   var checkLeft=left.x*answer+left.n,checkRight=right.x*answer+right.n;
+   steps(S,['x = '+numberText(answer)+'   ✓','check: put '+numberText(answer)+' in place of x. The left side is '+numberText(checkLeft)+' and the right side is '+numberText(checkRight)+', so both sides match.']);
+   return;
+  }
+ }catch(linearError){if(linearError!==0)throw linearError;}
+ // Keep the existing quadratic solver, while explain its stages in plain language.
  var moved=L;
  if(R!=='0'){
   var rt=terms(R);
   moved=L+rt.map(function(t){return '-'+t;}).join('');
-  S.push([moved+' = 0','move everything to one side: subtract ('+R+') from both sides']);
+  S.push([moved+' = 0','subtract ('+R+') from both sides to put the equation in a form we can solve.']);
  }
  var tt=terms(moved.replace(/^0\+?/,''));
  var a=0,b=0,c=0,hasX=false;
@@ -337,22 +424,16 @@ function solveEq(raw){
   }else{c+=parseFloat(t);}
  });
  if(!hasX)throw 0;
- if(a===0){
-  S.push([coef(b)+'x'+showP(c)+' = 0','linear form: keep only the x term on one side']);
-  S.push([coef(b)+'x = '+(-c),'subtract '+c+' from both sides']);
-  S.push(['x = '+(-c)+' \u00f7 '+b,'divide both sides by '+b]);
-  steps(S,['x = '+Number(((-c)/b).toFixed(6)),'final answer']);
-  return;
- }
- S.push([coef(a)+'x^2'+showP(b)+'x'+showP(c)+' = 0','standard form: ax^2 + bx + c = 0  (a='+a+', b='+b+', c='+c+')']);
+ if(a===0)throw 0;
+ S.push([coef(a)+'x^2'+showP(b)+'x'+showP(c)+' = 0','write the equation with 0 on one side.']);
  var d=b*b-4*a*c;
- S.push(['D = b^2 - 4ac = ('+b+')^2 - 4('+a+')('+c+') = '+d,'discriminant: tells us the type of roots']);
- if(d<0){steps(S,['no real solution','D < 0 means the curve never touches the x-axis']);return;}
- S.push(['x = (-b \u00b1 \u221aD) / 2a','quadratic formula']);
- var r=Math.sqrt(d);
- var x1=(-b+r)/(2*a),x2=(-b-r)/(2*a);
- if(d===0){steps(S,['x = '+Number(x1.toFixed(6)),'one repeated root']);return;}
- steps(S,['x = '+Number(x1.toFixed(6))+'   or   x = '+Number(x2.toFixed(6)),'two roots (+ and -)']);
+ S.push(['D = b^2 - 4ac = ('+b+')^2 - 4('+a+')('+c+') = '+d,'use this rule to find out how many answers there are.']);
+ if(d<0){steps(S,['no real solution','the calculation under the square root is below zero, so there is no real-number answer.']);return;}
+ S.push(['x = (-b ± √D) ÷ (2 × a)','use the quadratic formula. The ± means we calculate once with + and once with −.']);
+ var r=Math.sqrt(d),x1=(-b+r)/(2*a),x2=(-b-r)/(2*a);
+  var check1=evalPoly(L,x1),check2=evalPoly(L,x2),checkR1=evalPoly(R,x1),checkR2=evalPoly(R,x2);
+  if(d===0){steps(S,['x = '+numberText(x1),'check: put this value back in the original equation. The left side is '+numberText(check1)+' and the right side is '+numberText(checkR1)+', so they match.']);return;}
+  steps(S,['x = '+numberText(x1)+'   or   x = '+numberText(x2),'check: put each answer back in the original equation. The left and right sides match for both answers.']);
 }
 function simplify(raw){
  var t=terms(raw);
